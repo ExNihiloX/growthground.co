@@ -58,6 +58,20 @@ export function CoursesPage() {
     const isCompleted = progress === 100;
     const isStarted = progress > 0;
 
+    const formatDuration = (totalMinutes: number) => {
+      if (!totalMinutes || totalMinutes === 0) return '0m';
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const parts = [];
+      if (hours > 0) {
+        parts.push(`${hours}h`);
+      }
+      if (minutes > 0) {
+        parts.push(`${minutes}m`);
+      }
+      return parts.join(' ');
+    };
+
     return (
       <Card className="group cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-xl">
         <div className="relative">
@@ -95,7 +109,7 @@ export function CoursesPage() {
           <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              <span>{Math.round(module.estimatedTime / 60)}h {module.estimatedTime % 60}m</span>
+              <span>{formatDuration(module.estimatedTime)}</span>
             </div>
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
@@ -129,6 +143,20 @@ export function CoursesPage() {
     const progress = getModuleProgress(module.id, userProgress.completedLessons);
     const isCompleted = progress === 100;
     const isStarted = progress > 0;
+
+    const formatDuration = (totalMinutes: number) => {
+      if (!totalMinutes || totalMinutes === 0) return '0m';
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const parts = [];
+      if (hours > 0) {
+        parts.push(`${hours}h`);
+      }
+      if (minutes > 0) {
+        parts.push(`${minutes}m`);
+      }
+      return parts.join(' ');
+    };
 
     return (
       <Card className="hover:shadow-md transition-shadow">
@@ -165,7 +193,7 @@ export function CoursesPage() {
               <div className="flex items-center gap-6 text-sm text-gray-500 mb-4">
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  <span>{Math.round(module.estimatedTime / 60)}h {module.estimatedTime % 60}m</span>
+                  <span>{formatDuration(module.estimatedTime)}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Users className="h-4 w-4" />

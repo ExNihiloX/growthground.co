@@ -4,7 +4,7 @@ export const leadershipCommunication: CurriculumModule = {
   id: 'leadership-communication',
   title: 'Leadership & Communication',
   description: 'Master the essential skills for building a great team, managing stakeholders, and leading your startup to success.',
-  thumbnail: '/thumbnails/module-7.png',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Leadership',
   estimatedTime: 30,
   difficulty: 'Intermediate',
   category: 'Leadership & Communication',

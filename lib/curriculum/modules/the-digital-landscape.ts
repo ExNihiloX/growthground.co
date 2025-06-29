@@ -4,7 +4,7 @@ export const theDigitalLandscape: CurriculumModule = {
   id: 'the-digital-landscape',
   title: 'The Digital Landscape (Comprehensive)',
   description: 'An introduction to the core components of modern applications, including frontend, backend, databases, and APIs.',
-  thumbnail: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=600',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Digital+Landscape',
   estimatedTime: 40,
   difficulty: 'Beginner',
   category: 'Fundamentals',

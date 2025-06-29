@@ -4,7 +4,7 @@ export const leveragingDataAi: CurriculumModule = {
   id: 'leveraging-data-ai',
   title: 'Leveraging Data & AI',
   description: 'Harness the power of data analytics and artificial intelligence to make informed decisions and build intelligent features.',
-  thumbnail: 'https://images.pexels.com/photos/590020/pexels-photo-590020.jpeg?auto=compress&cs=tinysrgb&w=600',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Data+%26+AI',
   estimatedTime: 30,
   difficulty: 'Intermediate',
   category: 'Business',

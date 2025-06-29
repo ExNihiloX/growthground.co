@@ -4,7 +4,7 @@ export const theTechStack: CurriculumModule = {
   id: 'the-tech-stack',
   title: 'The Tech Stack (Comprehensive)',
   description: 'A comprehensive guide to understanding the key components of a modern tech stack, from frameworks to databases and hosting.',
-  thumbnail: '/thumbnails/module-4.png',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Tech+Stack',
   estimatedTime: 40,
   difficulty: 'Intermediate',
   category: 'Technology & Architecture',

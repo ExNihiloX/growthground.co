@@ -4,7 +4,7 @@ export const qualitySecurity: CurriculumModule = {
   id: 'quality-security',
   title: 'Ensuring Quality & Security',
   description: 'A deep dive into the practices that ensure your application is not only functional but also robust, secure, and user-friendly for everyone.',
-  thumbnail: '/thumbnails/module-5.png',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Quality+%26+Security',
   estimatedTime: 30,
   difficulty: 'Intermediate',
   category: 'Quality & Security',

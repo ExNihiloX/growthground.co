@@ -4,7 +4,7 @@ export const mobileDevelopment: CurriculumModule = {
   id: 'mobile-development',
   title: 'Mobile Development',
   description: 'Create native and cross-platform mobile applications that provide exceptional user experiences.',
-  thumbnail: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&cs=tinysrgb&w=600',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Mobile+Dev',
   estimatedTime: 40,
   difficulty: 'Intermediate',
   category: 'Development',

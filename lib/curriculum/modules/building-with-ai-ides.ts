@@ -4,7 +4,7 @@ export const buildingWithAiIdes: CurriculumModule = {
   id: 'building-with-ai-ides',
   title: 'Building with AI-Assisted IDEs',
   description: 'Learn how to leverage the power of AI-Assisted IDEs to build applications faster than ever before, from writing the perfect prompt to managing a hybrid AI-human workflow.',
-  thumbnail: '/thumbnails/module-6.png',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=AI+IDEs',
   estimatedTime: 30, // 3 lessons * 10 mins
   difficulty: 'Advanced',
   category: 'AI & Development',

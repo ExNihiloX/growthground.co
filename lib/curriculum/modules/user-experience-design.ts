@@ -4,7 +4,7 @@ export const userExperienceDesign: CurriculumModule = {
   id: 'user-experience-design',
   title: 'User Experience (UX) Design',
   description: 'Learn the principles of creating intuitive, user-friendly products that solve real problems.',
-  thumbnail: 'https://images.pexels.com/photos/326518/pexels-photo-326518.jpeg?auto=compress&cs=tinysrgb&w=600',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=UX+Design',
   estimatedTime: 30,
   difficulty: 'Intermediate',
   category: 'Design',

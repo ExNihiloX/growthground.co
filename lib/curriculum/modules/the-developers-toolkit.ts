@@ -4,7 +4,7 @@ export const theDevelopersToolkit: CurriculumModule = {
   id: 'the-developers-toolkit',
   title: "The Developer's Toolkit (Comprehensive)",
   description: "Master the essential tools and workflows that professional developers use every day, from version control with Git to automated testing.",
-  thumbnail: '/thumbnails/module-2.png',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Dev+Toolkit',
   estimatedTime: 60,
   difficulty: 'Beginner',
   category: 'Development Practices',

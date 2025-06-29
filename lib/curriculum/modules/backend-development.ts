@@ -4,7 +4,7 @@ export const backendDevelopment: CurriculumModule = {
   id: 'backend-development',
   title: 'Backend Development',
   description: 'Build robust server-side applications that power your frontend and manage your data efficiently.',
-  thumbnail: 'https://images.pexels.com/photos/1181467/pexels-photo-1181467.jpeg?auto=compress&cs=tinysrgb&w=600',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Backend+Dev',
   estimatedTime: 30,
   difficulty: 'Intermediate',
   category: 'Development',

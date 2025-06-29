@@ -4,7 +4,7 @@ export const frontendDevelopment: CurriculumModule = {
   id: 'frontend-development',
   title: 'Frontend Development',
   description: 'Master the art of creating beautiful, responsive user interfaces that users love to interact with.',
-  thumbnail: 'https://images.pexels.com/photos/11035471/pexels-photo-11035471.jpeg?auto=compress&cs=tinysrgb&w=600',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Frontend+Dev',
   estimatedTime: 30,
   difficulty: 'Intermediate',
   category: 'Development',

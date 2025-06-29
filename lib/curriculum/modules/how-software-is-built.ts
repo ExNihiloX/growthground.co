@@ -4,7 +4,7 @@ export const howSoftwareIsBuilt: CurriculumModule = {
   id: 'how-software-is-built',
   title: 'How Software is Built (Comprehensive)',
   description: 'Learn the modern processes and methodologies that successful software teams use to build, test, and deploy products efficiently.',
-  thumbnail: '/thumbnails/module-3.png',
+  thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=How+Software+is+Built',
   estimatedTime: 50, // 5 lessons * 10 mins
   difficulty: 'Beginner',
   category: 'Development Process',
