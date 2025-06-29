@@ -7,14 +7,19 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAppStore } from '@/lib/store';
+import { useAuth } from '@/contexts/auth-context';
 import { masterCurriculum } from '@/lib/curriculum';
 import { SearchResult } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export function Header() {
+  const { user, signOut } = useAuth();
+  const router = useRouter();
   const { 
-    user, 
     sidebarOpen, 
     setSidebarOpen, 
     searchQuery, 
@@ -54,11 +59,11 @@ export function Header() {
       // Search through lessons within modules
       module.lessons.forEach(lesson => {
         if (lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            lesson.description.toLowerCase().includes(searchQuery.toLowerCase())) {
+            lesson.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
           results.push({
             id: lesson.id,
             title: lesson.title,
-            description: lesson.description,
+            description: lesson.description || '',
             type: 'lesson',
             category: module.category,
             url: `/courses/${module.id}/lessons/${lesson.id}`,
@@ -88,6 +93,15 @@ export function Header() {
     setShowSearchResults(false);
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   return (
     <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 py-3 lg:px-6">
@@ -102,14 +116,14 @@ export function Header() {
             <Menu className="h-5 w-5" />
           </Button>
           
-          <div className="flex items-center gap-2">
+          <Link href="/dashboard" className="flex items-center gap-2">
             <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-2 rounded-xl">
               <BookOpen className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold text-gray-900 hidden sm:block">
               GrowthGround
             </span>
-          </div>
+          </Link>
         </div>
 
         {/* Center - Search */}
@@ -214,18 +228,42 @@ export function Header() {
             </span>
           </Button>
           
-          <div className="flex items-center gap-3 ml-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.avatar} alt={user?.name} />
-              <AvatarFallback>
-                <User className="h-4 w-4" />
-              </AvatarFallback>
-            </Avatar>
-            <div className="hidden sm:block">
-              <p className="text-sm font-medium text-gray-900">{user?.name || 'Guest'}</p>
-              <p className="text-xs text-gray-500">{user?.email || 'guest@example.com'}</p>
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-3 ml-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.name || user?.email} />
+                  <AvatarFallback>
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="hidden sm:block text-left">
+                  <p className="text-sm font-medium text-gray-900">
+                    {user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem asChild>
+                <Link href="/profile" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Profile Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard" className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Dashboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
