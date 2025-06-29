@@ -3,9 +3,9 @@ import { CurriculumModule } from '../types';
 export const userExperienceDesign: CurriculumModule = {
   id: 'user-experience-design',
   title: 'User Experience (UX) Design',
-  description: 'Learn the principles of creating intuitive, user-friendly products that solve real problems.',
+  description: 'Learn the art and science of creating products that users love, from initial research to final testing.',
   thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=UX+Design',
-  estimatedTime: 30,
+  estimatedTime: 40,
   difficulty: 'Intermediate',
   category: 'Design',
   isLocked: false,
@@ -14,94 +14,115 @@ export const userExperienceDesign: CurriculumModule = {
   studentsEnrolled: 0,
   prerequisites: ['the-digital-landscape'],
   learningOutcomes: [
-    'Apply the design thinking process to product development',
-    'Conduct effective user research and usability testing',
-    'Create wireframes and prototypes to visualize ideas',
-    'Understand the principles of intuitive user interface design'
+    'Conduct effective user research to understand user needs.',
+    'Structure information and design intuitive user flows.',
+    'Create wireframes and prototypes to visualize and test ideas.',
+    'Perform usability testing to identify and fix product flaws.'
   ],
   lessons: [
     {
-      id: 'design-thinking-process',
-      title: 'The Design Thinking Process',
+      id: 'user-research',
+      title: 'It Starts with Research',
       duration: 10,
-      coreConcepts: ['Empathize', 'Define', 'Ideate', 'Prototype', 'Test'],
-      analogy: 'Design thinking is like a detective solving a case—you gather clues, form a theory, test it, and iterate until you find the truth.',
+      coreConcepts: ['User Interviews', 'Personas', 'Pain Points', 'Empathy'],
+      analogy: 'User research is like being a detective investigating a case; you have to go out and gather evidence.',
       content: {
-        hook: "Ever wondered why some products feel like they read your mind while others are a constant struggle? The secret isn't magic—it's a structured process called Design Thinking. This framework helps you move from guessing what users want to knowing what they need.",
+        hook: 'You are not your user. The features you think are brilliant might be confusing or useless to your actual customers. The only way to know for sure is to get out of the building and do User Research.',
         coreExplanation: [
-          "<strong>Design Thinking</strong> is a human-centered approach to innovation that integrates user needs, technological possibilities, and business requirements. It's a structured but non-linear process that helps teams tackle complex problems.",
-          "<strong>Empathize:</strong> The first step is to gain a deep, empathetic understanding of your users' problems and realities. This involves observing, engaging, and immersing yourself in their world. You're not just looking for what they say, but what they do, think, and feel.",
-          "<strong>Define:</strong> Next, you synthesize your findings to define a clear problem statement. This isn't about listing features; it's about framing the core user need you've identified. A good problem statement is actionable and focused, like 'New parents need a way to quickly and safely find reliable childcare' rather than 'We need to build a babysitter app.'",
-          "<strong>Ideate:</strong> With a clear problem, you can start brainstorming solutions. The goal here is quantity over quality—encourage wild ideas and defer judgment. Techniques like 'How Might We' questions can help reframe the problem to spark creativity.",
-          "<strong>Prototype:</strong> Now you build a simple, low-cost, experimental version of your best ideas. A prototype isn't a finished product; it's a tool for learning. It can be anything from a paper sketch to an interactive digital mockup.",
-          "<strong>Test:</strong> Finally, you put your prototype in front of real users to get feedback. This isn't about defending your idea; it's about learning what works and what doesn't. The insights from testing often lead you back to earlier stages, refining your understanding of the problem or generating new ideas."
+          "User research is the process of understanding your users' behaviors, needs, and motivations. Think of yourself as a detective investigating a case. You can't solve it by sitting in your office and guessing; you have to go out and gather evidence.",
+          "The two most important investigative techniques are: <strong>User Interviews</strong>: These are one-on-one conversations where you ask open-ended questions to understand a user's world. The goal is not to ask 'Would you use our product?' but 'Tell me about the last time you tried to solve [the problem your app addresses].' You are trying to uncover their pain points and existing workflows.",
+          "<strong>Personas</strong>: After several interviews, you'll start to see patterns. A Persona is a fictional character you create that represents your target user. For example, 'Marketing Mary, a 35-year-old marketing manager at a mid-sized company who struggles to collaborate with her design team.' This persona is not a real person, but it's based on real data from your interviews. It helps your entire team build empathy and constantly ask, 'Would Mary understand this?'"
         ],
         strategicInsights: [
-          "<strong>Problem-Solution Fit First:</strong> Before you worry about product-market fit, use design thinking to ensure you have problem-solution fit. Are you solving a real problem that users care about?",
-          "<strong>Reduce Risk, Increase Speed:</strong> The design thinking process helps you de-risk your product development by testing assumptions early and cheaply. It's much faster to change a paper prototype than a fully coded application.",
-          "<strong>Foster a Collaborative Culture:</strong> Design thinking is a team sport. It breaks down silos between design, engineering, and business, fostering a shared understanding of the user and the problem."
+          '<strong>De-risk Your Roadmap:</strong> User research is the single best way to de-risk your product roadmap. It helps ensure you are building features that people actually need and will pay for.',
+          '<strong>Find Your Marketing Language:</strong> By listening to how your users describe their problems, you will discover the exact language to use on your landing page and in your marketing copy.',
+          "<strong>A Founder's Job:</strong> In the early days, the founder should be directly involved in as many user interviews as possible. There is no better way to understand your customer and your market."
         ],
         talkingToDevs: [
-          "Before we start building, can we run some user interviews to validate our assumptions about this problem?",
-          "Instead of fully implementing this feature, could we create a simplified prototype to test with users first?",
-          "The user testing showed that people struggled with X. How difficult would it be to pivot our approach to address this?"
+          "'Based on our interviews with 'Marketing Mary,' it seems like collaboration is a bigger pain point than we thought. How might we reflect that in our product?'",
+          "'Before we start designing this feature, have we talked to any users to validate that this is a problem they actually have?'",
+          "'Let's set a goal to talk to at least five users every month.'"
         ],
-        interactiveElementBrief: "Create a 'Design Challenge Simulator' where users are presented with a realistic business problem. They must work through each stage of the design thinking process, making choices at each step. For example, choosing which user research method to employ, selecting a problem statement from options, picking which ideas to prototype, etc. The simulation provides feedback on their choices and shows how different approaches lead to different outcomes."
+        interactiveElementBrief: "Create a 'Good Question, Bad Question' game. The user is shown a series of questions to ask in a user interview. They must sort them into two buckets. 'Bad' questions would be leading ones like 'Don't you think this feature is great?' 'Good' questions would be open-ended ones like 'Can you tell me about your current process for...?'"
       }
     },
     {
-      id: 'user-research-methods',
-      title: 'User Research Methods',
+      id: 'information-architecture-user-flows',
+      title: 'Information Architecture & User Flows',
       duration: 10,
-      coreConcepts: ['Interviews', 'Surveys', 'Usability Testing', 'Analytics'],
-      analogy: 'User research is like being a journalist—you ask the right questions to uncover the real story behind user behavior.',
+      coreConcepts: ['Information Architecture', 'User Flows', 'Navigation', 'Friction Points'],
+      analogy: 'Information Architecture is the blueprint for a grocery store, organizing everything logically so you can find what you need.',
       content: {
-        hook: "Building products based only on your own perspective is like writing a book about a country you've never visited—filled with assumptions and misconceptions. User research gives you access to the map of your customers' minds and needs.",
+        hook: "Your app has a dozen features. How do you organize them so that users can easily find what they're looking for without getting lost? This is the discipline of Information Architecture.",
         coreExplanation: [
-          "<strong>User research</strong> is the systematic investigation of your users' needs, behaviors, and motivations. It comes in many forms, each with distinct strengths and purposes.",
-          "<strong>Interviews</strong> are one-on-one conversations with users or potential users. They provide deep, qualitative insights and allow for follow-up questions. Interviews excel at uncovering the 'why' behind behaviors and attitudes. The key is asking open-ended questions and avoiding leading the participant: 'Tell me about the last time you tried to book a flight' rather than 'Don\'t you find booking flights frustrating?'",
-          "<strong>Surveys</strong> collect responses from many users through standardized questions. They're excellent for quantitative data ('80% of users prefer feature X') but less effective at understanding nuanced motivations. Surveys shine when you need to validate findings from interviews across a larger sample or prioritize features based on user preferences.",
-          "<strong>Usability Testing</strong> involves watching users interact with your product while they complete specific tasks. This reveals real-world friction points that users might not even consciously recognize. The classic format is to give users a task ('Please try to purchase this product') and ask them to think aloud as they work through it, noting where they hesitate or make mistakes.",
-          "<strong>Analytics</strong> provide passive, quantitative data about how users actually behave in your product. While interviews tell you what users say they do, analytics show what they actually do. This includes metrics like conversion rates, feature usage, and drop-off points. Analytics excel at answering 'what' and 'how many' but rarely answer 'why.'"
+          "<strong>Information Architecture (IA)</strong> is like the blueprint for a grocery store. The architects intentionally place the milk at the back so you have to walk past other items. They group all the produce together and all the frozen foods together. This logical organization makes it easy for you to navigate and find what you need. For your app, IA is the practice of organizing and labeling your content and features in a logical and intuitive way.",
+          "A <strong>User Flow</strong> is the path a shopper takes through that store to complete a specific task, like buying ingredients for a birthday cake. It's a diagram that maps out every step and decision a user makes. For example, a user flow for your app might be: Homepage -> Clicks 'Login' -> Enters Credentials -> Lands on Dashboard -> Clicks 'Create New Project'.",
+          "Visualizing these flows before you design any screens helps you identify potential friction points and simplify the user's journey."
         ],
         strategicInsights: [
-          "<strong>Triangulate Methods:</strong> Each research method has blind spots. Combine multiple approaches to get a complete picture. For example, analytics might show users abandoning a sign-up flow, usability testing reveals where they get confused, and interviews uncover why that point is problematic.",
-          "<strong>Research Debt:</strong> Skipping research early to 'move fast' creates research debt—you'll eventually have to pay it back with interest in the form of failed features and major pivots. A consistent practice of lightweight research throughout development is more efficient than one massive research project after launch.",
-          "<strong>Just Enough Research:</strong> Research exists on a spectrum from quick-and-dirty to comprehensive and rigorous. For early-stage startups, talking to just 5-7 relevant users can identify major issues. Perfect is the enemy of good—some research is vastly better than none."
+          "<strong>Clarity Reduces Churn:</strong> If users can't find the feature they're looking for, they will assume it doesn't exist and churn. Good IA is essential for user retention.",
+          "<strong>Foundation for Design:</strong> A clear IA and user flow diagram are the necessary prerequisites for your design team. You can't design the screens until you know what screens you need and how they connect.",
+          "<strong>Identify Unnecessary Steps:</strong> Mapping out a user flow often reveals that you are making the user take seven steps to do something that could be done in three. It's a powerful tool for simplification."
         ],
         talkingToDevs: [
-          "Let's not assume our users will understand this flow—can we schedule a few quick usability tests with some existing customers?",
-          "The analytics show high drop-off at this step. Can we implement more detailed event tracking to understand exactly what's happening?",
-          "Before we commit to this feature roadmap, should we run a survey to validate which features our users value most?"
+          "'Have we created a user flow diagram for the new onboarding process? I want to make sure we've simplified it as much as possible.'",
+          "'Based on our IA, where in the main navigation should this new feature live?'",
+          "'I feel like getting to the 'Settings' page is too complicated. Can we map out the current user flow and see where we can remove steps?'"
         ],
-        interactiveElementBrief: "Create a 'Research Method Matchmaker' tool where users are presented with different business questions (e.g., 'Why are users abandoning our checkout flow?' or 'Which pricing tier is most appealing to our target audience?'). For each question, users must select the most appropriate research method. The tool explains why certain methods are better suited to answer specific types of questions."
+        interactiveElementBrief: "A 'User Flow Puzzle.' The user is given a set of scrambled screen thumbnails for a common task (like posting a photo on Instagram). They must drag and drop the screens into the correct sequential order to build the logical user flow."
       }
     },
     {
       id: 'wireframing-prototyping',
-      title: 'Wireframing and Prototyping',
+      title: 'From Lo-Fi to Hi-Fi (Wireframing & Prototyping)',
       duration: 10,
-      coreConcepts: ['Information Architecture', 'User Flows', 'Low-fidelity Prototypes', 'High-fidelity Mockups'],
-      analogy: 'Wireframing is like creating a blueprint for a house—you plan the layout before you start decorating.',
+      coreConcepts: ['Low-Fidelity Wireframes', 'High-Fidelity Mockups', 'Interactive Prototypes', 'Figma'],
+      analogy: 'The design process is like an architect designing a house, moving from napkin sketches to photorealistic renderings to a walkable VR model.',
       content: {
-        hook: "You wouldn't build a house without a blueprint, yet many founders try to build products without wireframes and prototypes. This critical step helps you visualize your product, test assumptions cheaply, and get stakeholder alignment before investing in expensive development.",
+        hook: 'How do you design and test an idea for a new feature without spending weeks building the whole thing? The answer is a phased design process that moves from cheap, low-fidelity sketches to beautiful, high-fidelity prototypes.',
         coreExplanation: [
-          "<strong>Information Architecture (IA)</strong> is the structural design of your product—how information is organized, labeled, and connected. Good IA ensures users can find what they need intuitively. Think of it as designing the floor plan of a building: which rooms connect to others, what's on each floor, and how people navigate between spaces. For websites and apps, this includes site maps, menu structures, and content organization.",
-          "<strong>User Flows</strong> map the path users take to accomplish tasks in your product. They focus on the journey, not just individual screens. A user flow diagram shows each step from entry point to task completion, including decision points and potential branches. For example, a sign-up flow might include: land on homepage → click sign-up button → fill out form → verify email → complete profile.",
-          "<strong>Low-fidelity Prototypes</strong> (or 'lo-fi') are simple, quick sketches of your interface that focus on layout, structure, and functionality—not visual design. These can be hand-drawn sketches, simple digital wireframes, or even paper cut-outs. Lo-fi prototypes are perfect for early testing because they're quick to create and easy to change, encouraging iteration without emotional attachment to specific designs.",
-          "<strong>High-fidelity Mockups</strong> (or 'hi-fi') look much closer to the final product, with realistic visuals, typography, colors, and sometimes limited interactivity. These help stakeholders visualize the end product and are useful for testing more nuanced aspects of the user experience. However, they take longer to create and can sometimes give the false impression that the design is 'finished' and unchangeable."
+          "This process is like an architect designing a house. They don't start by picking out doorknobs.",
+          "1. <strong>Lo-Fi Wireframes:</strong> This is the architect's initial pencil sketch on a napkin. Wireframes are simple, black-and-white block diagrams that focus purely on the structure and layout of a page. What are the key elements? Where do the buttons go? What is the hierarchy of information? They are intentionally rough, which makes them fast to create and easy to throw away if the idea is bad.",
+          "2. <strong>Hi-Fi Mockups:</strong> This is the architect creating a full-color, photorealistic 3D rendering of the house. A high-fidelity mockup is a static but visually perfect image of what the final screen will look like. It includes the final colors, fonts, spacing, and branding. This is what you would show to stakeholders for final design approval.",
+          "3. <strong>Interactive Prototypes:</strong> This is the architect building a walkable, virtual reality model of the house. A prototype, built in a tool like Figma or Sketch, links the static mockups together to create a clickable, interactive simulation of the app. Users can tap on buttons and navigate between screens as if it were a real app. This is the best way to get user feedback before a single line of code is written."
         ],
         strategicInsights: [
-          "<strong>Fidelity Matches Phase:</strong> Match your prototype's fidelity to your project phase. Early exploration benefits from rough sketches that can be rapidly changed. As you gain confidence in your direction, increase fidelity gradually. This prevents wasting time on pixel-perfect mockups of features that might get cut.",
-          "<strong>Prototype Only What's Necessary:</strong> You don't need to prototype every screen and interaction. Focus on key user journeys, novel interactions, and areas of uncertainty or risk. A strategic partial prototype can answer your most important questions without the overhead of building everything.",
-          "<strong>Tools Don't Matter, Process Does:</strong> Whether you use specialized software (Figma, Sketch), presentation tools (PowerPoint, Keynote), or pen and paper, your thinking process matters more than your tools. Don't get distracted by learning complex software if simpler tools can communicate your ideas effectively."
+          '<strong>Fail Cheaply:</strong> Wireframing allows you to explore and discard dozens of ideas cheaply and quickly. It\'s much cheaper to change a sketch than to change a finished product.',
+          '<strong>Get Better Feedback:</strong> A clickable prototype is the gold standard for user testing. Watching a user try to complete a task in a prototype will give you far more accurate insights than just showing them a static image.',
+          '<strong>Clarity for Developers:</strong> Providing your development team with a complete, interactive prototype removes almost all ambiguity. They know exactly what to build, which reduces rework and saves money.'
         ],
         talkingToDevs: [
-          "Here's the user flow and wireframes for the new feature. Can we discuss any technical constraints or opportunities we should consider before finalizing the design?",
-          "The prototype shows what we want to achieve, but I'd like your input on the most efficient way to implement this interaction pattern.",
-          "I've identified these three areas as potentially complex from a UX perspective. Could we collaborate on some rough prototypes to test different approaches before committing to one?"
+          "'Before we move to high-fidelity mockups, can we test these low-fi wireframes with a few users to validate the core layout?'",
+          "'Is this interactive prototype ready for a round of usability testing?'",
+          "'Please make sure the Figma prototype includes all the different states for this screen, including the error state and the success state.'"
         ],
-        interactiveElementBrief: "Create a 'Wireframe Evolution Simulator' where users start with a basic product requirement (e.g., 'Create a sign-up process'). They progress through exercises to build an information architecture diagram, sketch a user flow, create a simple wireframe, and finally, a higher-fidelity mockup. At each stage, they're prompted with decisions that highlight the key considerations for that phase of design, showing how early decisions impact later stages."
+        interactiveElementBrief: "Create a 'Fidelity Slider.' The user sees an image of a screen. There is a slider below labeled 'Fidelity.' As they move the slider from left to right, the image transforms from a rough pencil sketch (Lo-Fi Wireframe) to a blocky grayscale diagram, and finally to a full-color, pixel-perfect design (Hi-Fi Mockup)."
+      }
+    },
+    {
+      id: 'usability-testing',
+      title: 'Usability Testing',
+      duration: 10,
+      coreConcepts: ['Usability Testing', 'Think Aloud Protocol', 'Friction Points', 'User Observation'],
+      analogy: "Usability testing is like inviting someone to your house and watching them try to find the bathroom without giving any hints.",
+      content: {
+        hook: "Your designs are beautiful, your prototype is interactive—but is it actually easy to use? You can't answer that question yourself because you already know how it's supposed to work. Usability testing is the art of watching real users interact with your product to find its hidden flaws.",
+        coreExplanation: [
+          "Think of usability testing as inviting someone to your house for the first time and watching them try to find the bathroom. You don't give them a map. You don't give them hints. You just watch. Do they turn left when they should have turned right? Do they try to open a closet door? Their confusion reveals flaws in your home's layout.",
+          "In a <strong>usability test</strong>, you give a user your prototype and a simple task to complete, like 'Imagine you want to sign up for this service and create your first project.' Then, you stay quiet and watch. You encourage them to think out loud, narrating their thought process. 'Okay, I'm looking for a 'Sign Up' button... hmm, I don't see one, but I see 'Get Started,' so I'll click that...'",
+          "Your goal is not to defend your design, but to identify where users get stuck, confused, or frustrated. These friction points are gold. They provide a clear, prioritized list of the problems you need to fix to improve your product."
+        ],
+        strategicInsights: [
+          "<strong>Five Users is Enough:</strong> You don't need a massive sample size. Famously, the Nielsen Norman Group proved that testing with just five users will reveal about 85% of the core usability problems in your design.",
+          "<strong>Test Early, Test Often:</strong> Don't wait until the end. Test your low-fi wireframes. Test your hi-fi prototype. Test your live app. It's a continuous process, not a one-time event.",
+          "<strong>You will always be surprised.</strong> No matter how smart you and your team are, real users will always interact with your product in ways you never expected. This is why testing is indispensable."
+        ],
+        talkingToDevs: [
+          "'We're scheduling five usability tests for the new prototype this Friday. What are the key tasks we want users to complete?'",
+          "'What were the top three usability issues that came out of our last testing session, and how are we addressing them in the next sprint?'",
+          "'I'd like to sit in and observe the next usability test, just to listen and learn.'"
+        ],
+        interactiveElementBrief: "A 'Find the Flaw' simulation. The user watches a short, pre-recorded video of someone's mouse moving around a screen, trying to complete a task. The user's goal is to click on the part of the screen where the person in the video got confused or stuck. A correct click reveals a text bubble explaining the usability problem (e.g., 'The button label was unclear')."
       }
     }
   ]
