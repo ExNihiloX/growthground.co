@@ -32,9 +32,15 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
+      console.log('Attempting to sign in user:', email);
       const { error: signInError, user } = await signIn(email, password);
       
-      if (signInError) throw signInError;
+      if (signInError) {
+        console.error('Sign in failed:', signInError);
+        throw signInError;
+      }
+      
+      console.log('Sign in successful, user:', user?.email);
       
       if (user) {
         // Redirect to dashboard on successful login
@@ -43,6 +49,7 @@ export default function LoginPage() {
         throw new Error('Something went wrong. Please try again.');
       }
     } catch (err: any) {
+      console.error('Sign in error:', err);
       setError(err.message || 'Failed to sign in. Please check your credentials.');
     } finally {
       setIsLoading(false);
@@ -76,6 +83,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 disabled={isLoading}
+                required
               />
             </div>
             
@@ -96,6 +104,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 disabled={isLoading}
+                required
               />
             </div>
             

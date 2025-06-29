@@ -49,16 +49,30 @@ export default function SignUpPage() {
     setIsLoading(true);
     
     try {
+      console.log('Attempting to sign up user:', email);
       const { error: signUpError, user } = await signUp(email, password, name);
       
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        console.error('Sign up failed:', signUpError);
+        throw signUpError;
+      }
+      
+      console.log('Sign up successful, user:', user);
       
       if (user) {
-        router.push('/auth/verification');
+        // Check if email confirmation is required
+        if (!user.email_confirmed_at) {
+          console.log('Email confirmation required, redirecting to verification page');
+          router.push('/auth/verification');
+        } else {
+          console.log('User confirmed, redirecting to dashboard');
+          router.push('/dashboard');
+        }
       } else {
         throw new Error('Something went wrong. Please try again.');
       }
     } catch (err: any) {
+      console.error('Sign up error:', err);
       setError(err.message || 'Failed to sign up. Please try again.');
     } finally {
       setIsLoading(false);
@@ -92,6 +106,7 @@ export default function SignUpPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
                 disabled={isLoading}
+                required
               />
             </div>
             
@@ -104,6 +119,7 @@ export default function SignUpPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 disabled={isLoading}
+                required
               />
             </div>
             
@@ -116,6 +132,8 @@ export default function SignUpPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 disabled={isLoading}
+                required
+                minLength={6}
               />
             </div>
             
@@ -128,6 +146,8 @@ export default function SignUpPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
                 disabled={isLoading}
+                required
+                minLength={6}
               />
             </div>
             

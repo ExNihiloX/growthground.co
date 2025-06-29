@@ -75,47 +75,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchSession();
     
     // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('Auth state changed:', event, newSession?.user?.email);
+      
       setSession(newSession);
       setUser(newSession?.user || null);
       
       // Refresh profile on auth state change
       if (newSession?.user) {
-        supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', newSession.user.id)
-          .single()
-          .then(({ data, error }) => {
-            if (!error) {
-              setProfile(data as Profile);
-            }
-          });
+          .single();
+        
+        if (!error) {
+          setProfile(data as Profile);
+        }
       } else {
         setProfile(null);
       }
       
-      // Refresh the router
-      router.refresh();
+      setIsLoading(false);
     });
     
     return () => {
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, []);
   
   // User registration function
   const signUp = async (email: string, password: string, name: string) => {
     try {
+      console.log('Starting sign up process for:', email);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            name: name,
+          }
+        }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Sign up error:', error);
+        throw error;
+      }
       
-      // Create a profile if registration was successful
+      console.log('Sign up successful:', data);
+      
+      // Create a profile if registration was successful and user is confirmed
       if (data.user) {
+        console.log('Creating profile for user:', data.user.id);
+        
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -129,7 +143,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (profileError) {
           console.error('Error creating profile:', profileError);
-          throw profileError;
+          // Don't throw here as the user account was created successfully
+        } else {
+          console.log('Profile created successfully');
         }
         
         // Create default user preferences
@@ -152,7 +168,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (prefsError) {
           console.error('Error creating preferences:', prefsError);
-          throw prefsError;
+          // Don't throw here as the user account was created successfully
+        } else {
+          console.log('User preferences created successfully');
         }
         
         // Initialize user progress
@@ -169,7 +187,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (progressError) {
           console.error('Error creating progress record:', progressError);
-          throw progressError;
+          // Don't throw here as the user account was created successfully
+        } else {
+          console.log('User progress record created successfully');
         }
       }
       
@@ -183,13 +203,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // User login function
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Starting sign in process for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Sign in error:', error);
+        throw error;
+      }
       
+      console.log('Sign in successful:', data.user?.email);
       return { user: data.user, error: null };
     } catch (error: any) {
       console.error('Sign in error:', error);
@@ -200,6 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // User logout function
   const signOut = async () => {
     try {
+      console.log('Signing out user');
       await supabase.auth.signOut();
       setUser(null);
       setProfile(null);

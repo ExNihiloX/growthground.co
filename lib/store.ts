@@ -159,7 +159,6 @@ export const useAppStore = create<AppState>()(
     {
       name: 'growthground-storage',
       partialize: (state) => ({
-        user: state.user,
         userProgress: {
           ...state.userProgress,
           completedLessons: Array.from(state.userProgress.completedLessons),

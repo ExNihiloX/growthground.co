@@ -18,11 +18,10 @@ import { SettingsPage } from '@/components/pages/settings-page';
 import { HelpPage } from '@/components/pages/help-page';
 import { TestConnection } from '@/components/test-connection';
 import { useAppStore } from '@/lib/store';
-import { mockUser } from '@/lib/data';
 import { CurriculumModule } from '@/lib/curriculum';
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth();
+  const { user, profile, isLoading } = useAuth();
   const router = useRouter();
   const { 
     setUser, 
@@ -42,19 +41,35 @@ export default function DashboardPage() {
   }, [user, isLoading, router]);
 
   useEffect(() => {
-    if (user && !useAppStore.getState().user) {
+    if (user && profile && !useAppStore.getState().user) {
       // Map the authenticated user to our app user format
       const appUser = {
         id: user.id,
-        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        name: profile.name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
         email: user.email || '',
-        avatar: user.user_metadata?.avatar_url || mockUser.avatar,
-        joinedAt: user.created_at || new Date().toISOString(),
-        preferences: mockUser.preferences,
+        avatar: profile.avatar_url || user.user_metadata?.avatar_url,
+        joinedAt: profile.joined_at || user.created_at || new Date().toISOString(),
+        preferences: {
+          theme: 'light' as const,
+          notifications: {
+            email: true,
+            push: false,
+            reminders: true,
+          },
+          privacy: {
+            profileVisible: true,
+            progressVisible: true,
+          },
+          learning: {
+            dailyGoal: 60,
+            reminderTime: '19:00',
+            autoplay: false,
+          },
+        },
       };
       setUser(appUser);
     }
-  }, [user, setUser]);
+  }, [user, profile, setUser]);
 
   // Show loading while checking auth
   if (isLoading) {
@@ -123,7 +138,7 @@ export default function DashboardPage() {
             <div className="mb-8">
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white">
                 <h1 className="text-3xl font-bold mb-2">
-                  Welcome back, {useAppStore.getState().user?.name || 'Guest'}! 👋
+                  Welcome back, {profile?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Guest'}! 👋
                 </h1>
                 <p className="text-blue-100 text-lg">
                   Ready to continue your learning journey? Let's master the fundamentals of building great products!
