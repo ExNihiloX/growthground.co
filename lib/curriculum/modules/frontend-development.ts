@@ -2,7 +2,7 @@ import { CurriculumModule } from '../types';
 
 export const frontendDevelopment: CurriculumModule = {
   id: 'frontend-development',
-  title: 'Frontend Development',
+  title: 'Modern Frontend Development',
   description: 'Master the art of creating beautiful, responsive user interfaces that users love to interact with.',
   thumbnail: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Frontend+Dev',
   estimatedTime: 30,
@@ -14,92 +14,90 @@ export const frontendDevelopment: CurriculumModule = {
   studentsEnrolled: 0,
   prerequisites: ['the-digital-landscape'],
   learningOutcomes: [
-    'Understand modern frontend frameworks and their trade-offs',
-    'Learn responsive design principles and mobile-first development',
-    'Master state management and component architecture',
-    'Implement performance optimization techniques'
+    'Understand component-based architecture',
+    'Grasp the fundamentals of state management',
+    'Identify key frontend performance metrics and strategies',
+    'Communicate effectively with developers about frontend topics'
   ],
   lessons: [
     {
-      id: 'html-css-javascript',
-      title: 'HTML, CSS, and JavaScript',
+      id: 'the-component-revolution',
+      title: 'The Component Revolution',
       duration: 10,
-      coreConcepts: ['HTML Structure', 'CSS Styling', 'JavaScript Interactivity', 'DOM Manipulation'],
-      analogy: 'HTML is the skeleton, CSS is the clothing and makeup, and JavaScript is the personality that brings everything to life.',
+      coreConcepts: ['Component-Based Architecture', 'Reusability', 'Composition', 'Design Systems'],
+      analogy: 'Building a UI with components is like building with LEGOs instead of carving from a single block of wood.',
       content: {
-        hook: "Every website and web application you've ever used—from Amazon to your local pizza place—is built with these three technologies. As a founder, understanding their roles helps you communicate effectively with your team and make informed product decisions.",
+        hook: "How do teams at companies like Airbnb and Spotify build massive, complex user interfaces without them collapsing into chaos? They don't build pages; they build systems of small, reusable Components.",
         coreExplanation: [
-          "<strong>HTML (HyperText Markup Language)</strong> is the skeleton of your web page—the foundation that gives it structure. It defines elements like headings, paragraphs, images, and links. Without HTML, there is no web page at all. HTML tags tell the browser what each piece of content represents: <code>&lt;h1&gt;</code> for main headings, <code>&lt;p&gt;</code> for paragraphs, <code>&lt;img&gt;</code> for images, etc.",
-          "<strong>CSS (Cascading Style Sheets)</strong> is the appearance—the clothing, makeup, and visual styling of your web page. It controls colors, fonts, spacing, layout, and responsive design (how your site looks on different devices). Without CSS, your site would be plain black text on a white background with blue links. CSS transforms your skeleton into something visually appealing.",
-          "<strong>JavaScript</strong> is the personality and behavior—it makes your site interactive and dynamic. While HTML and CSS are primarily about presentation, JavaScript lets users interact with your site: clicking buttons that update content without reloading the page, validating form inputs before submission, animating elements, and much more.",
-          "The <strong>DOM (Document Object Model)</strong> is JavaScript's way of accessing and modifying HTML elements. It's like JavaScript's remote control for the web page, allowing it to change content, attributes, and styles dynamically based on user actions."
+          "Think of building your application's UI like building with LEGOs.",
+          "In the past, developers built entire pages as single, monolithic blocks of code. This was like carving a toy car out of one solid piece of wood. If you wanted to change the wheel, you had to re-carve the whole car.",
+          "Modern frontend development, powered by frameworks like React, Vue, and Svelte, uses a Component-Based Architecture. This is the LEGO approach. Instead of a single block of wood, you have a box of specialized LEGO pieces: a 'wheel' piece, an 'axle' piece, a 'steering wheel' piece. Each component is a self-contained, reusable piece of the UI. For your app, you might have a <Button> component, a <UserProfileCard> component, or a <SearchBar> component.",
+          "You then compose these small, simple components together to build more complex components, which in turn compose your entire page. If you need to change how all the buttons in your app look, you just update the single <Button> component, and the change is reflected everywhere. This makes your UI consistent, scalable, and much faster to build and maintain."
         ],
         strategicInsights: [
-          "<strong>Separation of Concerns:</strong> Keep structure (HTML), presentation (CSS), and behavior (JavaScript) separate for easier maintenance and updates. This principle makes it possible for different team members to work on different aspects without stepping on each other's toes.",
-          "<strong>Progressive Enhancement:</strong> Build your core functionality with HTML first, enhance with CSS, and add JavaScript last. This ensures your site remains functional even if JavaScript fails to load or is disabled.",
-          "<strong>Framework Decision:</strong> While you can build sites with vanilla HTML/CSS/JS, most modern projects use frameworks like React, Vue, or Angular. These provide structure and tools for large applications but come with learning curves. For simple sites, frameworks may be overkill."
+          "<strong>Design Systems:</strong> The component model is the foundation of a Design System—a 'single source of truth' library of all your UI components. This is your company's most valuable design asset, ensuring brand consistency and dramatically speeding up both design and development.",
+          "<strong>Increased Development Velocity:</strong> Once you have a robust library of components, building new features becomes like assembling LEGOs. Your team can move much faster because they aren't rebuilding common elements from scratch.",
+          "<strong>Easier Maintenance & Debugging:</strong> When a bug appears in a UI element, you only need to fix it in one place—the component file—instead of hunting it down on dozens of different pages."
         ],
         talkingToDevs: [
-          "Are we adhering to semantic HTML principles to ensure accessibility and SEO?",
-          "What's our approach to CSS organization? Are we using a methodology like BEM, SMACSS, or a CSS-in-JS solution?",
-          "How are we minimizing JavaScript bundle size to ensure fast page loads, especially for mobile users?"
+          "Are we using a tool like Storybook to create a visual library of our frontend components?",
+          "As we design this new page, what existing components can we reuse, and what new, reusable components will we need to build?",
+          "How much time should we budget this quarter for building out and strengthening our core component library?"
         ],
-        interactiveElementBrief: "Create a simple 'Web Tech Playground' where users can edit basic HTML, CSS, and JavaScript in separate panels and see their combined result rendered live. Include pre-made examples that demonstrate how the three technologies work together."
+        interactiveElementBrief: "Create a 'UI Assembler' game. On the left, the user has a palette of simple components (Avatar, Button, Text Input). On the right is an empty 'Profile Card' wireframe. The user must drag and drop the components into the correct slots to build the finished card, demonstrating the concept of composition."
       }
     },
     {
-      id: 'responsive-design',
-      title: 'Responsive Design',
+      id: 'mastering-state-management',
+      title: 'Mastering State Management',
       duration: 10,
-      coreConcepts: ['Mobile-First Design', 'Flexbox', 'CSS Grid', 'Media Queries'],
-      analogy: 'Responsive design is like water—it adapts to fit any container, whether it\'s a phone, tablet, or desktop.',
+      coreConcepts: ['UI State', 'Local State', 'Global State', 'State Management Libraries'],
+      analogy: "State is your application's short-term memory. Local state is a sticky note; global state is a central whiteboard.",
       content: {
-        hook: "More than 60% of web traffic now comes from mobile devices. If your product doesn't work well on phones, you're losing over half your potential customers before they even see what you offer.",
+        hook: "Who is logged in? What's in their shopping cart? Is the side menu open or closed? This information is the 'state' of your application, and managing it properly is one of the biggest challenges in building a complex frontend.",
         coreExplanation: [
-          "<strong>Mobile-First Design</strong> is an approach that starts with designing for the smallest screen first, then progressively enhancing for larger screens. It's like building a tiny house first, then adding rooms as space allows. This forces you to prioritize the most important content and features from the beginning.",
-          "<strong>Flexbox</strong> is a CSS layout model that makes it easy to create flexible, responsive layouts without resorting to hacks. Think of it as arranging items in a row or column that can automatically adjust based on screen size, like elastic containers that grow or shrink.",
-          "<strong>CSS Grid</strong> takes this a step further, allowing two-dimensional layouts (rows AND columns simultaneously). Imagine being able to place items precisely on a blueprint, then having the blueprint itself resize intelligently for different devices.",
-          "<strong>Media Queries</strong> are the triggers that activate different CSS rules based on device characteristics. They're like instructions that say, 'When the screen is smaller than X pixels, use these layout rules instead.'"
+          "Think of your application's state as its short-term memory. It's all the information that can change while a user is interacting with your app. There are two fundamental types of state.",
+          "<strong>UI State (or Local State)</strong> is memory specific to a single component. It's like a sticky note on your desk for a temporary task. Is a dropdown menu open? What has a user typed into a search bar before hitting enter? This information is simple and only matters to that one component, so it's managed locally.",
+          "<strong>Global State</strong> is memory that needs to be shared across your entire application. It's like a central whiteboard in an office that everyone can see and update. Who is the currently logged-in user? What items are in the shopping cart? This information needs to be accessible by many different, unrelated components. Managing this is complex, and it's where tools like Zustand, Redux, or React Context come in. They provide a predictable way to read and update this shared 'whiteboard' without creating chaos."
         ],
         strategicInsights: [
-          "<strong>Responsive Is Not Optional:</strong> Treating mobile as an afterthought is a critical business mistake in today's market. Your MVP should be mobile-friendly from day one.",
-          "<strong>Testing Is Essential:</strong> Responsive designs must be tested on real devices—emulators aren't enough. What works on your iPhone may fail on Android devices with different screen ratios.",
-          "<strong>Performance Matters Most on Mobile:</strong> Mobile users have less processing power and often slower connections. Heavy sites that work fine on desktop can be unusably slow on mobile."
+          "<strong>Complexity Determines Tools:</strong> For a simple app, local state might be enough. For a complex app with user accounts and shared data, a robust global state management library is a non-negotiable architectural choice.",
+          "<strong>The Source of 'Weird' Bugs:</strong> Many hard-to-pinpoint bugs come from state being out of sync. For example, a user's name is updated in their profile but the old name still shows in the header. This is a classic global state management problem.",
+          "<strong>Performance Implications:</strong> How you manage state can have a big impact on performance. Inefficient state management can cause your app to re-render unnecessarily, making it feel slow and sluggish."
         ],
         talkingToDevs: [
-          "How are we ensuring our site performs well on low-end devices and slower connections?",
-          "What's our approach to images and media for responsive design? Are we using responsive images to avoid downloading large files on mobile?",
-          "Are we using a mobile-first CSS approach or retrofitting desktop designs to work on mobile?"
+          "What is our strategy for managing global state? Which library are we using and why?",
+          "For this new feature, does this data need to be in our global store, or can it be managed locally within the component?",
+          "Are there any parts of the app where we're seeing performance issues that might be related to how we're handling state updates?"
         ],
-        interactiveElementBrief: "Create a 'Responsive Design Simulator' where users can see how a webpage transforms across different devices (phone, tablet, laptop, desktop). They can toggle between designs that use and don't use responsive principles to see the difference in user experience."
+        interactiveElementBrief: "Create a 'State Sorter' simulation. The user is presented with different pieces of data (e.g., 'Is the \\'Like\\' button currently hovered?', 'The logged-in user\\'s ID', 'Text in a comment box'). They must drag each item into one of two buckets: 'Local UI State' or 'Global App State,' learning to differentiate between the two."
       }
     },
     {
-      id: 'frontend-frameworks',
-      title: 'Frontend Frameworks',
+      id: 'the-quest-for-performance',
+      title: 'The Quest for Performance',
       duration: 10,
-      coreConcepts: ['React', 'Vue', 'Angular', 'Component Architecture'],
-      analogy: 'Frontend frameworks are like pre-designed kitchen systems with modular cabinets—they provide structure, reusable components, and best practices to build user interfaces faster.',
+      coreConcepts: ['Rendering Strategy', 'Asset Optimization', 'Core Web Vitals', 'Code-Splitting'],
+      analogy: 'Frontend performance is like running a restaurant kitchen during the dinner rush. Efficiency is everything.',
       content: {
-        hook: "Why do most tech companies build their web applications with React, Vue, or Angular instead of plain JavaScript? The right framework choice can dramatically accelerate development while the wrong one can saddle your team with technical debt.",
+        hook: "You have three seconds. After that, more than half of your mobile users will abandon your site if it hasn't loaded. Frontend performance isn't a 'nice-to-have'; it's a critical business metric that directly impacts your revenue and growth.",
         coreExplanation: [
-          "<strong>Frontend frameworks</strong> evolved to solve the complexity of building modern web applications. As sites grew from simple documents to full applications with complex state management and dynamic updates, vanilla JavaScript became unwieldy and difficult to maintain.",
-          "<strong>React</strong>, developed by Facebook, focuses on a component-based architecture where UI elements are broken into reusable pieces. Its key innovation is the virtual DOM, which efficiently updates only what's changed rather than re-rendering the entire page. React has the largest ecosystem and community, making it easy to find both developers and ready-made components. However, it's not a complete framework—you'll need to choose additional libraries for routing, state management, etc.",
-          "<strong>Vue</strong> offers a more incremental adoption path and is often considered easier to learn. It combines React's component model with Angular's template syntax and provides more built-in features out of the box. Vue excels at optimizing the developer experience and achieves high performance with minimal configuration. It's particularly popular with startups and in Asia.",
-          "<strong>Angular</strong>, maintained by Google, is a comprehensive framework rather than just a UI library. It comes with everything included—HTTP client, forms handling, routing, state management—providing a consistent, opinionated structure. This comprehensive approach means faster setup for standard applications but less flexibility for unique needs. Angular uses TypeScript by default, which adds type safety but also increases the learning curve.",
-          "All three frameworks share the concept of <strong>Component Architecture</strong>, which breaks UIs into reusable, self-contained building blocks. Like LEGO pieces, components can be assembled in various ways to create complex interfaces while keeping code organized and maintainable."
+          "Think of frontend performance like running a restaurant kitchen during the dinner rush. Efficiency is everything. Three key areas determine your performance.",
+          "<strong>Rendering Strategy:</strong> This is how your kitchen prepares the meal. Do you pre-cook everything and have it waiting under a heat lamp (Static Site Generation, SSG)? This is incredibly fast for the customer, perfect for blogs or marketing pages. Or do you cook every meal to order when the customer arrives (Client-Side Rendering, CSR)? This is flexible but can be slow. The best modern approach is often a hybrid, like Server-Side Rendering (SSR) or Incremental Static Regeneration (ISR), where you cook the meal on the server just as the order comes in, delivering a perfectly fresh, fast result.",
+          "<strong>Asset Optimization:</strong> This is managing your pantry ingredients. Are you using massive, high-resolution images when a smaller, compressed version would do? Are you sending the user your entire cookbook (JavaScript bundle) when they only ordered a single dish? Optimizing images, compressing code, and 'code-splitting' (only sending the code needed for the current page) are crucial for reducing load times.",
+          "<strong>The Critical Rendering Path:</strong> This is the precise sequence of steps the browser must take to paint your page. Optimizing this path is like organizing your kitchen for maximum efficiency, ensuring the most important 'ingredients' (like visible text and images) are loaded and rendered first, a concept measured by Google's Core Web Vitals."
         ],
         strategicInsights: [
-          "<strong>Framework Choice Is About People, Not Just Technology:</strong> Your framework decision should consider your team's expertise and the local talent market. It's far easier to build with a less-optimal technology that your team knows than to use the 'perfect' framework that nobody understands.",
-          "<strong>Consider the Full Ecosystem:</strong> Don't evaluate frameworks in isolation. Look at the surrounding ecosystem of tools, libraries, and community support. A thriving ecosystem means problems are solved faster, and hiring is easier.",
-          "<strong>Avoid Premature Optimization:</strong> Many founders worry about framework performance before they even have users. Focus first on developer productivity and time-to-market. Optimize performance when it becomes a real bottleneck."
+          "<strong>SEO & Conversion:</strong> Google directly uses Core Web Vitals as a ranking factor. Faster sites rank higher. Faster sites also have demonstrably higher conversion rates.",
+          "<strong>The Cost of JavaScript:</strong> Every new third-party script you add (for analytics, chat widgets, etc.) can slow down your site. Be ruthless about evaluating the ROI of each script.",
+          "<strong>Perceived Performance Matters:</strong> Sometimes, making a site feel fast is as important as it being fast. Using skeleton loaders and prioritizing visible content can dramatically improve the user's perception of speed."
         ],
         talkingToDevs: [
-          "What's the learning curve for our team if we choose this framework? How quickly can we start shipping features?",
-          "How mature are the libraries in this ecosystem for features we'll need, like authentication, forms, or data visualization?",
-          "What's the long-term maintenance overhead? Will we be fighting the framework as our application grows more complex?"
+          "What are our current Core Web Vital scores, and what is our plan to improve them this quarter?",
+          "Can we run a bundle analysis? I want to understand what our largest JavaScript dependencies are.",
+          "For this new page, what is our rendering strategy? Should it be statically generated or server-rendered?"
         ],
-        interactiveElementBrief: "Create a 'Framework Fit Calculator' where founders answer questions about their project requirements (team size, complexity, timeline, specific features needed) and team background. The tool provides personalized recommendations for which framework might best fit their specific situation, explaining the tradeoffs of each option for their context."
+        interactiveElementBrief: "Create a 'Performance Optimizer' game. The user is shown a simulated website with a low performance score (e.g., 45/100). A list of potential optimizations appears ('Compress Images,' 'Enable Caching,' 'Remove Unused Scripts'). As the user clicks on each optimization, the performance score visibly increases, demonstrating the impact of each action."
       }
     }
   ]
