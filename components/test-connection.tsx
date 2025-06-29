@@ -13,10 +13,10 @@ export function TestConnection() {
   useEffect(() => {
     const testConnection = async () => {
       try {
-        // Test basic connection
+        // Test basic connection by fetching the ID of a single profile
         const { data, error } = await supabase
           .from('profiles')
-          .select('count')
+          .select('id') // Selecting a specific, likely existing column
           .limit(1);
 
         if (error) {
