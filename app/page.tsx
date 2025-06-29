@@ -21,6 +21,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export default function HomePage() {
   const { user, isLoading } = useAuth();
@@ -108,44 +109,49 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-2 rounded-xl">
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">GrowthGround</span>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
+              <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Home
+              </Link>
+              <Link href="/about" className="text-gray-600 hover:text-gray-900 transition-colors">
+                About Us
+              </Link>
               <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Features
               </a>
               <a href="#curriculum" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Curriculum
               </a>
-              <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Reviews
-              </a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Pricing
-              </a>
+              <Link href="/donate" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Donate
+              </Link>
             </nav>
 
             {/* Desktop Auth Buttons */}
             <div className="hidden md:flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => router.push('/auth/login')}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Log In
-              </Button>
-              <Button 
-                onClick={() => router.push('/auth/signup')}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-              >
-                Get Started
-              </Button>
+              <Link href="/auth/login">
+                <Button 
+                  variant="ghost" 
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  Log In
+                </Button>
+              </Link>
+              <Link href="/auth/signup">
+                <Button 
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                >
+                  Sign Up
+                </Button>
+              </Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -165,32 +171,37 @@ export default function HomePage() {
           {mobileMenuOpen && (
             <div className="md:hidden py-4 border-t border-gray-200">
               <nav className="flex flex-col gap-4">
+                <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
+                  Home
+                </Link>
+                <Link href="/about" className="text-gray-600 hover:text-gray-900 transition-colors">
+                  About Us
+                </Link>
                 <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
                   Features
                 </a>
                 <a href="#curriculum" className="text-gray-600 hover:text-gray-900 transition-colors">
                   Curriculum
                 </a>
-                <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors">
-                  Reviews
-                </a>
-                <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
-                  Pricing
-                </a>
+                <Link href="/donate" className="text-gray-600 hover:text-gray-900 transition-colors">
+                  Donate
+                </Link>
                 <div className="flex flex-col gap-2 pt-4 border-t border-gray-200">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => router.push('/auth/login')}
-                    className="w-full"
-                  >
-                    Log In
-                  </Button>
-                  <Button 
-                    onClick={() => router.push('/auth/signup')}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                  >
-                    Get Started
-                  </Button>
+                  <Link href="/auth/login">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                    >
+                      Log In
+                    </Button>
+                  </Link>
+                  <Link href="/auth/signup">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                    >
+                      Sign Up
+                    </Button>
+                  </Link>
                 </div>
               </nav>
             </div>
@@ -217,22 +228,26 @@ export default function HomePage() {
                 Master frontend, backend, AI, and everything in between—without becoming a developer.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Button 
-                  size="lg"
-                  onClick={() => router.push('/auth/signup')}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg px-8 py-6"
-                >
-                  Start Learning Free
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                <Link href="/auth/signup">
+                  <Button 
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg px-8 py-6"
+                  >
+                    Start Learning Free
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
                 <Button 
                   size="lg"
                   variant="outline"
-                  onClick={() => router.push('/auth/login')}
+                  onClick={() => {
+                    const featuresSection = document.getElementById('features');
+                    featuresSection?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   className="text-lg px-8 py-6 border-2"
                 >
                   <Play className="mr-2 h-5 w-5" />
-                  Watch Demo
+                  Learn More
                 </Button>
               </div>
               <div className="flex items-center gap-6 mt-8 justify-center lg:justify-start">
@@ -336,8 +351,101 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Curriculum Section */}
+      <section id="curriculum" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Master Curriculum
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              A comprehensive learning path designed specifically for founders and entrepreneurs
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                title: "The Digital Landscape",
+                description: "Understand the anatomy of web applications and core technologies",
+                lessons: "4 lessons",
+                duration: "40 min",
+                difficulty: "Beginner"
+              },
+              {
+                title: "Frontend Development",
+                description: "Master modern UI development and user experience design",
+                lessons: "3 lessons",
+                duration: "30 min",
+                difficulty: "Intermediate"
+              },
+              {
+                title: "Backend Development",
+                description: "Learn server-side architecture and API design principles",
+                lessons: "3 lessons",
+                duration: "30 min",
+                difficulty: "Intermediate"
+              },
+              {
+                title: "Mobile Development",
+                description: "Build apps for iOS and Android using modern frameworks",
+                lessons: "3 lessons",
+                duration: "30 min",
+                difficulty: "Intermediate"
+              },
+              {
+                title: "AI & Data",
+                description: "Leverage artificial intelligence and data analytics",
+                lessons: "5 lessons",
+                duration: "50 min",
+                difficulty: "Advanced"
+              },
+              {
+                title: "Quality & Security",
+                description: "Ensure your applications are robust and secure",
+                lessons: "3 lessons",
+                duration: "30 min",
+                difficulty: "Intermediate"
+              }
+            ].map((module, index) => (
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <CardContent className="p-6">
+                  <div className="mb-4">
+                    <Badge className={cn(
+                      "mb-3",
+                      module.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' :
+                      module.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    )}>
+                      {module.difficulty}
+                    </Badge>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">
+                      {module.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4">
+                      {module.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>{module.lessons}</span>
+                    <span>{module.duration}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="text-center mt-12">
+            <Link href="/auth/signup">
+              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+                Start Learning Now
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-gray-50">
+      <section id="testimonials" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -391,22 +499,24 @@ export default function HomePage() {
             Join thousands of founders who've transformed their understanding of technology
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg"
-              onClick={() => router.push('/auth/signup')}
-              className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-6"
-            >
-              Start Your Journey
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button 
-              size="lg"
-              variant="outline"
-              onClick={() => router.push('/auth/login')}
-              className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-6"
-            >
-              Already have an account?
-            </Button>
+            <Link href="/auth/signup">
+              <Button 
+                size="lg"
+                className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-6"
+              >
+                Start Your Journey
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Link href="/auth/login">
+              <Button 
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-6"
+              >
+                Already have an account?
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -431,15 +541,15 @@ export default function HomePage() {
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
                 <li><a href="#curriculum" className="hover:text-white transition-colors">Curriculum</a></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><Link href="/donate" className="hover:text-white transition-colors">Donate</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
+                <li><Link href="/about" className="hover:text-white transition-colors">About</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link></li>
               </ul>
             </div>
           </div>
