@@ -14,6 +14,7 @@ import { SchedulePage } from '@/components/pages/schedule-page';
 import { CommunityPage } from '@/components/pages/community-page';
 import { SettingsPage } from '@/components/pages/settings-page';
 import { HelpPage } from '@/components/pages/help-page';
+import { TestConnection } from '@/components/test-connection';
 import { useAppStore } from '@/lib/store';
 import { mockUser } from '@/lib/data';
 import { CurriculumModule } from '@/lib/curriculum';
@@ -80,6 +81,11 @@ export default function Home() {
       default:
         return (
           <>
+            {/* Supabase Connection Test - Remove this after testing */}
+            <div className="mb-8">
+              <TestConnection />
+            </div>
+
             {/* Welcome Section */}
             <div className="mb-8">
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white">
