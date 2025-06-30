@@ -6,20 +6,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useAppStore } from '@/lib/store';
-import { CurriculumModule, getModuleProgress } from '@/lib/curriculum';
+import { useAppStore } from '@/lib/store-db';
+import { Module } from '@/lib/services/content-service';
 import { cn } from '@/lib/utils';
 
 interface ModuleCardProps {
-  module: CurriculumModule;
-  onStartModule: (module: CurriculumModule) => void;
+  module: Module;
+  onStartModule: (module: Module) => void;
 }
 
 export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
-  const { userProgress } = useAppStore();
+  const { userProgress, progressLoading } = useAppStore();
   const [isHovered, setIsHovered] = useState(false);
   
-  const progress = getModuleProgress(module.id, userProgress.completedLessons);
+  // Get progress from the store which is loaded from the database
+  const progress = userProgress.moduleProgress[module.id] || 0;
   const isCompleted = progress === 100;
   const isStarted = progress > 0;
 
@@ -47,12 +48,12 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
     <Card 
       className={cn(
         "group cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-xl",
-        module.isLocked && "opacity-60 cursor-not-allowed",
+        module.is_locked && "opacity-60 cursor-not-allowed",
         isCompleted && "ring-2 ring-green-200 bg-gradient-to-br from-green-50 to-emerald-50"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => !module.isLocked && onStartModule(module)}
+      onClick={() => !module.is_locked && onStartModule(module)}
     >
       <div className="relative">
         <img
@@ -78,7 +79,7 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
               Complete
             </Badge>
           )}
-          {module.isLocked && (
+          {module.is_locked && (
             <Badge className="bg-gray-500 text-white w-fit">
               <Lock className="h-3 w-3 mr-1" />
               Locked
@@ -87,7 +88,7 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
         </div>
 
         {/* Play button overlay */}
-        {!module.isLocked && (
+        {!module.is_locked && (
           <div className={cn(
             "absolute inset-0 flex items-center justify-center transition-opacity duration-300",
             isHovered ? "opacity-100" : "opacity-0"
@@ -118,15 +119,15 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
         <div className="grid grid-cols-2 gap-4 text-sm text-gray-500 mb-4">
           <div className="flex items-center gap-1">
             <BookOpen className="h-4 w-4" />
-            <span>{module.lessons.length} lessons</span>
+            <span>{module.lessons?.length || 'TBD'} lessons</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>{Math.round(module.estimatedTime / 60)}h {module.estimatedTime % 60}m</span>
+            <span>{Math.round(module.estimated_time / 60)}h {module.estimated_time % 60}m</span>
           </div>
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
-            <span>{module.studentsEnrolled?.toLocaleString()}</span>
+            <span>{module.students_enrolled?.toLocaleString() || 'N/A'}</span>
           </div>
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -163,15 +164,15 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
         <div className="mb-4">
           <p className="text-xs text-gray-500 mb-2">You'll learn to:</p>
           <ul className="text-xs text-gray-600 space-y-1">
-            {module.learningOutcomes.slice(0, 2).map((outcome, index) => (
+            {module.learning_outcomes.slice(0, 2).map((outcome, index) => (
               <li key={index} className="flex items-start gap-1">
                 <span className="text-green-500 mt-0.5">•</span>
                 <span className="line-clamp-1">{outcome}</span>
               </li>
             ))}
-            {module.learningOutcomes.length > 2 && (
+            {module.learning_outcomes.length > 2 && (
               <li className="text-gray-400">
-                +{module.learningOutcomes.length - 2} more outcomes
+                +{module.learning_outcomes.length - 2} more outcomes
               </li>
             )}
           </ul>
@@ -187,13 +188,13 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
                 ? "bg-blue-600 hover:bg-blue-700"
                 : "bg-gray-900 hover:bg-gray-800"
           )}
-          disabled={module.isLocked}
+          disabled={module.is_locked}
           onClick={(e) => {
             e.stopPropagation();
-            if (!module.isLocked) onStartModule(module);
+            if (!module.is_locked) onStartModule(module);
           }}
         >
-          {module.isLocked ? (
+          {module.is_locked ? (
             <>
               <Lock className="h-4 w-4 mr-2" />
               Locked

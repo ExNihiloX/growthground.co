@@ -17,38 +17,40 @@ import { CommunityPage } from '@/components/pages/community-page';
 import { SettingsPage } from '@/components/pages/settings-page';
 import { HelpPage } from '@/components/pages/help-page';
 import { TestConnection } from '@/components/test-connection';
-import { useAppStore } from '@/lib/store';
-import { CurriculumModule } from '@/lib/curriculum';
+import { useAppStore } from '@/lib/store-db';
+import { Module } from '@/lib/services/content-service';
 
 export default function DashboardPage() {
-  const { user, profile, isLoading } = useAuth();
+  const { user: authUser, profile, isLoading } = useAuth();
   const router = useRouter();
   const { 
-    setUser, 
-    currentModule, 
-    setCurrentModule, 
-    currentPage,
-    setCurrentPage 
+    setUser,
+    currentPage, 
+    setCurrentPage,
+    currentModule,
+    setCurrentModule,
+    fetchModule,
+    fetchUserProgress 
   } = useAppStore();
   
   const [viewMode, setViewMode] = useState<'dashboard' | 'lesson'>('dashboard');
 
   // Redirect unauthenticated users to home
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isLoading && !authUser) {
       router.push('/');
     }
-  }, [user, isLoading, router]);
+  }, [authUser, isLoading, router]);
 
   useEffect(() => {
-    if (user && profile && !useAppStore.getState().user) {
+    if (authUser && profile && !useAppStore.getState().user) {
       // Map the authenticated user to our app user format
       const appUser = {
-        id: user.id,
-        name: profile.name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-        email: user.email || '',
-        avatar: profile.avatar_url || user.user_metadata?.avatar_url,
-        joinedAt: profile.joined_at || user.created_at || new Date().toISOString(),
+        id: authUser.id,
+        name: profile.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+        email: authUser.email || '',
+        avatar: profile.avatar_url || authUser.user_metadata?.avatar_url,
+        joinedAt: profile.joined_at || authUser.created_at || new Date().toISOString(),
         preferences: {
           theme: 'light' as const,
           notifications: {
@@ -69,7 +71,7 @@ export default function DashboardPage() {
       };
       setUser(appUser);
     }
-  }, [user, profile, setUser]);
+  }, [authUser, profile, setUser]);
 
   // Show loading while checking auth
   if (isLoading) {
@@ -81,13 +83,17 @@ export default function DashboardPage() {
   }
 
   // Don't render anything if user is not authenticated
-  if (!user) {
+  if (!authUser) {
     return null;
   }
 
-  const handleStartModule = (module: CurriculumModule) => {
-    setCurrentModule(module);
-    setViewMode('lesson');
+  // Handle loading a module and its lessons
+  const handleStartModule = (module: Module) => {
+    // Fetch the complete module with lessons from the API
+    fetchModule(module.id).then(() => {
+      setCurrentPage('lesson-viewer');
+      setViewMode('lesson');
+    });
   };
 
   const handleBackToDashboard = () => {
@@ -101,7 +107,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex flex-col">
         <LessonViewer 
-          module={currentModule} 
+          module={currentModule as any} /* Type cast to any to resolve type compatibility issues temporarily */
           onBack={handleBackToDashboard}
         />
         <Footer />
@@ -138,7 +144,7 @@ export default function DashboardPage() {
             <div className="mb-8">
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white">
                 <h1 className="text-3xl font-bold mb-2">
-                  Welcome back, {profile?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Guest'}! 👋
+                  Welcome back, {profile?.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Guest'}! 👋
                 </h1>
                 <p className="text-blue-100 text-lg">
                   Ready to continue your learning journey? Let's master the fundamentals of building great products!
