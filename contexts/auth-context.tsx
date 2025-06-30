@@ -172,7 +172,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
       
-      console.log('Sign in successful:', data.user?.email);
+      // Update local state immediately for faster UI updates
+      if (data.user) {
+        setUser(data.user);
+        setSession(data.session);
+        
+        // Also fetch profile data to complete the auth state
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (profileData) {
+          setProfile(profileData as Profile);
+        }
+        
+        console.log('Sign in successful, session established:', data.user.email);
+      }
+      
       return { user: data.user, error: null };
     } catch (error: any) {
       console.error('Sign in error:', error);

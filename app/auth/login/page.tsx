@@ -40,11 +40,29 @@ export default function LoginPage() {
         throw signInError;
       }
       
-      console.log('Sign in successful, user:', user?.email);
+      console.log('Sign in successful, user object:', JSON.stringify({
+        id: user?.id,
+        email: user?.email,
+        metadata: user?.user_metadata,
+        hasUser: !!user
+      }, null, 2));
+      
+      const supabaseSession = await window.localStorage.getItem('supabase.auth.token');
+      console.log('Supabase session exists:', !!supabaseSession);
       
       if (user) {
-        // Redirect to dashboard on successful login
-        router.push('/dashboard');
+        console.log('About to redirect using window.location...');
+        
+        // Get any redirectUrl from the URL parameters or default to dashboard
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectUrl = urlParams.get('redirectUrl') || '/dashboard';
+        
+        // Use window.location.href instead of router.push for a more reliable redirect
+        // This causes a full page reload but ensures the redirect happens
+        window.location.href = redirectUrl;
+        
+        // Return early as we're redirecting
+        return;
       } else {
         throw new Error('Something went wrong. Please try again.');
       }

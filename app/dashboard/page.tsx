@@ -17,8 +17,8 @@ import { CommunityPage } from '@/components/pages/community-page';
 import { SettingsPage } from '@/components/pages/settings-page';
 import { HelpPage } from '@/components/pages/help-page';
 import { TestConnection } from '@/components/test-connection';
-import { useAppStore } from '@/lib/store-db';
-import { Module } from '@/lib/services/content-service';
+import { useAppStore } from '@/lib/store';
+import { CurriculumModule } from '@/lib/curriculum';
 
 export default function DashboardPage() {
   const { user: authUser, profile, isLoading } = useAuth();
@@ -29,8 +29,7 @@ export default function DashboardPage() {
     setCurrentPage,
     currentModule,
     setCurrentModule,
-    fetchModule,
-    fetchUserProgress 
+    modules // Use modules from the store directly
   } = useAppStore();
   
   const [viewMode, setViewMode] = useState<'dashboard' | 'lesson'>('dashboard');
@@ -43,14 +42,24 @@ export default function DashboardPage() {
   }, [authUser, isLoading, router]);
 
   useEffect(() => {
-    if (authUser && profile && !useAppStore.getState().user) {
-      // Map the authenticated user to our app user format
+    console.log('Dashboard auth state:', { 
+      hasAuthUser: !!authUser, 
+      hasProfile: !!profile,
+      profileData: profile,
+      storeHasUser: !!useAppStore.getState().user
+    });
+    
+    // Even if profile is null, we should still create a user object from auth data
+    if (authUser && !useAppStore.getState().user) {
+      console.log('Creating app user from auth data');
+      // Map the authenticated user to our app user format with null safety
       const appUser = {
         id: authUser.id,
-        name: profile.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+        // Handle null profile more explicitly
+        name: (profile?.name) || authUser.user_metadata?.name || (authUser.email ? authUser.email.split('@')[0] : 'User'),
         email: authUser.email || '',
-        avatar: profile.avatar_url || authUser.user_metadata?.avatar_url,
-        joinedAt: profile.joined_at || authUser.created_at || new Date().toISOString(),
+        avatar: (profile?.avatar_url) || authUser.user_metadata?.avatar_url,
+        joinedAt: (profile?.joined_at) || authUser.created_at || new Date().toISOString(),
         preferences: {
           theme: 'light' as const,
           notifications: {
@@ -69,6 +78,7 @@ export default function DashboardPage() {
           },
         },
       };
+      console.log('Setting app user:', appUser);
       setUser(appUser);
     }
   }, [authUser, profile, setUser]);
@@ -88,12 +98,12 @@ export default function DashboardPage() {
   }
 
   // Handle loading a module and its lessons
-  const handleStartModule = (module: Module) => {
-    // Fetch the complete module with lessons from the API
-    fetchModule(module.id).then(() => {
-      setCurrentPage('lesson-viewer');
-      setViewMode('lesson');
-    });
+  const handleStartModule = (module: CurriculumModule) => {
+    // For the in-memory store, we can directly set the current module
+    // without needing to fetch it from an API
+    setCurrentModule(module);
+    setCurrentPage('lesson-viewer');
+    setViewMode('lesson');
   };
 
   const handleBackToDashboard = () => {
@@ -158,7 +168,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Modules Grid */}
-            <ModulesGrid onStartModule={handleStartModule} />
+            <ModulesGrid 
+              onStartModule={(module) => {
+                // Type conversion to handle the module type difference
+                handleStartModule(module as unknown as CurriculumModule);
+              }} 
+            />
           </>
         );
     }
