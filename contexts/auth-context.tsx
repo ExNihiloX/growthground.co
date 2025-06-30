@@ -29,11 +29,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // Add isMounted state to fix hydration issues
+  const [isMounted, setIsMounted] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  
+  // Effect to set isMounted after first render
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   useEffect(() => {
     const fetchSession = async () => {
@@ -104,18 +111,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
   
-  // User registration function
+  // Generate a UUID that's safe for SSR
+  const generateUUID = () => {
+    // Use a timestamp-based approach for SSR safety
+    const timestamp = Date.now().toString(36);
+    const randomPart = Math.random().toString(36).substring(2, 10);
+    return `${timestamp}-${randomPart}`;
+  };
+
+  // Format date in a way that's safe for SSR
+  const getCurrentISOString = () => {
+    // Only use fixed date for SSR (will be updated client-side)
+    return typeof window === 'undefined' 
+      ? '2023-01-01T00:00:00.000Z' // Fixed date for server
+      : new Date().toISOString();
+  };
+
+  // User registration function - now much simpler since profile creation is handled by database trigger
   const signUp = async (email: string, password: string, name: string) => {
     try {
       console.log('Starting sign up process for:', email);
       
+      // Just create the auth user - profiles will be created automatically by database trigger
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            name: name,
-          }
+          data: { name }, // Store name in user metadata
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
       });
       
@@ -125,73 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       console.log('Sign up successful:', data);
-      
-      // Create a profile if registration was successful and user is confirmed
-      if (data.user) {
-        console.log('Creating profile for user:', data.user.id);
-        
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            name,
-            email,
-            avatar_url: null,
-            joined_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-        
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          // Don't throw here as the user account was created successfully
-        } else {
-          console.log('Profile created successfully');
-        }
-        
-        // Create default user preferences
-        const { error: prefsError } = await supabase
-          .from('user_preferences')
-          .insert({
-            id: data.user.id,
-            theme: 'light',
-            email_notifications: true,
-            push_notifications: false,
-            reminder_notifications: true,
-            profile_visible: true,
-            progress_visible: true,
-            daily_goal_minutes: 30,
-            reminder_time: '09:00',
-            autoplay: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-        
-        if (prefsError) {
-          console.error('Error creating preferences:', prefsError);
-          // Don't throw here as the user account was created successfully
-        } else {
-          console.log('User preferences created successfully');
-        }
-        
-        // Initialize user progress
-        const { error: progressError } = await supabase
-          .from('user_progress')
-          .insert({
-            user_id: data.user.id,
-            total_time_spent_minutes: 0,
-            current_streak_days: 0,
-            last_activity_date: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-        
-        if (progressError) {
-          console.error('Error creating progress record:', progressError);
-          // Don't throw here as the user account was created successfully
-        } else {
-          console.log('User progress record created successfully');
-        }
-      }
+      console.log('User profiles will be created automatically by database trigger');
       
       return { user: data.user, error: null };
     } catch (error: any) {
@@ -280,6 +237,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     forgotPassword,
     resetPassword,
   };
+  
+  // Return null or a loader until client-side hydration is complete
+  // This prevents hydration mismatch between server and client
+  if (!isMounted) {
+    return null; // Or return a loading spinner
+  }
   
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
