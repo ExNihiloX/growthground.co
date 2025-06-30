@@ -1,10 +1,10 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { Database } from '@/lib/database.types';
+import { createClient } from '@/lib/supabase/client';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -29,6 +29,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // Create a supabase client for use in client components
+  const supabase = createClient();
+  
   // Add isMounted state to fix hydration issues
   const [isMounted, setIsMounted] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -82,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchSession();
     
     // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, newSession: Session | null) => {
       console.log('Auth state changed:', event, newSession?.user?.email);
       
       setSession(newSession);
@@ -147,6 +150,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
       
+      // If auto-confirmation is enabled and we have a user, sync the router
+      if (data.user && !data.user.identities?.[0]?.identity_data?.email_verified) {
+        router.refresh();
+      }
+      
       console.log('Sign up successful:', data);
       console.log('User profiles will be created automatically by database trigger');
       
@@ -188,7 +196,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(profileData as Profile);
         }
         
-        console.log('Sign in successful, session established:', data.user.email);
+        // CRITICAL FIX: Force router to refresh server components
+        // This ensures the server recognizes the new session cookie before navigation
+        // Without this, middleware won't see the session until a full page refresh
+        router.refresh();
+        
+        console.log('Sign in successful, session established and router refreshed:', data.user.email);
       }
       
       return { user: data.user, error: null };
@@ -203,9 +216,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Signing out user');
       await supabase.auth.signOut();
+      
+      // Clear local state
       setUser(null);
       setProfile(null);
       setSession(null);
+      
+      // IMPORTANT: Refresh router to ensure server components recognize session is gone
+      router.refresh();
+      
+      // Then navigate to home page
       router.push('/');
     } catch (error) {
       console.error('Sign out error:', error);
@@ -216,7 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const forgotPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
       });
       
       if (error) throw error;
@@ -236,6 +256,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       if (error) throw error;
+      
+      // Force refresh to ensure session changes are recognized
+      router.refresh();
       
       return { error: null };
     } catch (error: any) {

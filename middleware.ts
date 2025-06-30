@@ -2,14 +2,12 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // Create a response object that will be modified with cookies
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   })
 
-  // Create a Supabase client that handles cookies between request and response
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -19,58 +17,38 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          // Set cookies on both request and response to keep them in sync
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          request.cookies.set({ name, value, ...options })
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          response.cookies.set({ name, value, ...options })
         },
         remove(name: string, options: CookieOptions) {
-          // Remove cookies from both request and response
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          request.cookies.set({ name, value: '', ...options })
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
-          // Next.js ResponseCookies doesn't have remove method, so we set with empty value and same options
-          response.cookies.set({
-            name,
-            value: '',
-            ...options
-          })
+          // Next.js doesn't have a remove method on response.cookies, so we set with empty value
+          response.cookies.set({ name, value: '', ...options })
         },
       },
     }
   )
 
-  // Get the current user session
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   const { pathname } = request.nextUrl
 
-  console.log('Middleware running for path:', pathname, 'Session exists:', !!session)
+  // Log for debugging session detection
+  console.log('Middleware checking:', pathname, 'Session:', session ? 'Yes' : 'No')
 
   // **Protect the dashboard and related routes**
-  // If no session exists and the user is trying to access protected routes,
-  // redirect them to the login page.
   if (!session && (
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/profile') ||
@@ -78,7 +56,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/lessons') ||
     pathname.startsWith('/settings')
   )) {
-    console.log('No session found, redirecting to login')
+    console.log('Protected route, no session - redirecting to login')
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     // Store the original URL to redirect back after login
@@ -93,14 +71,13 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/auth/forgot-password') ||
     pathname.startsWith('/auth/reset-password')
   )) {
-    console.log('Session found, redirecting to dashboard')
+    console.log('Auth page accessed with session - redirecting to dashboard')
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 
-  // If none of the above conditions are met, continue to the requested page
-  console.log('Continuing to requested page')
+  // For all other requests, return the response with the updated cookies
   return response
 }
 
@@ -112,7 +89,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public files (e.g. robots.txt)
+     * - public files 
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

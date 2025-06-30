@@ -47,22 +47,19 @@ export default function LoginPage() {
         hasUser: !!user
       }, null, 2));
       
-      const supabaseSession = await window.localStorage.getItem('supabase.auth.token');
-      console.log('Supabase session exists:', !!supabaseSession);
-      
       if (user) {
-        console.log('About to redirect using window.location...');
-        
         // Get any redirectUrl from the URL parameters or default to dashboard
         const urlParams = new URLSearchParams(window.location.search);
         const redirectUrl = urlParams.get('redirectUrl') || '/dashboard';
         
-        // Use window.location.href instead of router.push for a more reliable redirect
-        // This causes a full page reload but ensures the redirect happens
-        window.location.href = redirectUrl;
+        // NOTE: We no longer need to call router.refresh() here because it's already
+        // implemented in the auth context signIn function
         
-        // Return early as we're redirecting
-        return;
+        console.log('Auth successful - redirecting to:', redirectUrl);
+        
+        // Use Next.js router for client-side navigation
+        // The session cookie is already set by auth context and middleware will recognize it
+        router.push(redirectUrl);
       } else {
         throw new Error('Something went wrong. Please try again.');
       }
