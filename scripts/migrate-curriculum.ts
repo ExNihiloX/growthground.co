@@ -3,6 +3,17 @@
  * 
  * This script migrates the hardcoded curriculum data to the Supabase database.
  * It creates and populates the categories, modules, and lessons tables.
+ * 
+ * Usage:
+ *   npm run migrate-curriculum -- [options]
+ * 
+ * Options:
+ *   --dry-run   Simulate migration without making actual database changes
+ *   --cleanup   Remove stale entities no longer in the source curriculum
+ *   --verbose   Show detailed logs during migration
+ *   --help      Show this help message
+ * 
+ * Version: 1.0.0
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -42,6 +53,73 @@ const masterCurriculum: CurriculumModule[] = [
   leadershipCommunication
 ];
 
+/**
+ * Parse command line arguments properly in both direct invocation and through npm scripts
+ * NPM passes args differently, so we need to handle both cases
+ */
+function parseCommandLineArgs() {
+  console.log('Raw command line arguments:', process.argv);
+  
+  // When running through npm, we need to check for the special -- separator
+  // npm run script -- --flag1 --flag2 => args after -- get passed to the script
+  const npmRunIndex = process.argv.findIndex(arg => arg.endsWith('migrate-curriculum.ts'));
+  const relevantArgs = process.argv.slice(npmRunIndex + 1);
+  
+  const isDryRun = relevantArgs.includes('--dry-run');
+  const isCleanup = relevantArgs.includes('--cleanup');
+  const isVerbose = relevantArgs.includes('--verbose');
+  const showHelp = relevantArgs.includes('--help');
+  
+  const options = {
+    dryRun: isDryRun,
+    cleanup: isCleanup,
+    verbose: isVerbose,
+    help: showHelp
+  };
+  
+  console.log('Parsed command line options:', options);
+  return options;
+}
+
+/**
+ * Displays help information for the script
+ */
+function displayHelp() {
+  console.log(`
+╔════════════════════════════════════════════════════════╗
+║          GrowthGround Curriculum Migration Tool        ║
+╚════════════════════════════════════════════════════════╝
+
+Usage:
+  npm run migrate-curriculum -- [options]
+  
+Options:
+  --dry-run   Simulate migration without making database changes
+  --cleanup   Remove stale entities from the database
+  --verbose   Show detailed logs during migration
+  --help      Show this help message
+
+Examples:
+  npm run migrate-curriculum -- --dry-run
+  npm run migrate-curriculum -- --dry-run --verbose
+  npm run migrate-curriculum -- --cleanup
+
+Direct execution with tsx:
+  npx tsx scripts/migrate-curriculum.ts --dry-run
+
+Version: 1.0.0
+`);
+  process.exit(0);
+}
+
+// Parse command line options
+const options = parseCommandLineArgs();
+
+// Show help if requested
+if (options.help) {
+  displayHelp();
+}
+
 console.log('====== CURRICULUM MIGRATION SCRIPT ======');
 console.log('Script starting at', new Date().toISOString());
 console.log('Current working directory:', process.cwd());
@@ -55,13 +133,13 @@ dotenv.config({ path: '.env.local' });
 console.log('Command line arguments:', process.argv);
 
 // Parse options from command line arguments
-const options = {
-  dryRun: process.argv.includes('--dry-run'),
-  cleanup: process.argv.includes('--cleanup'),
-  verbose: process.argv.includes('--verbose')
+const parsedOptions = {
+  dryRun: options.dryRun,
+  cleanup: options.cleanup,
+  verbose: options.verbose
 };
 
-console.log('Fixed parsed options:', options);
+console.log('Fixed parsed options:', parsedOptions);
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
@@ -455,6 +533,56 @@ async function migrateCurriculum() {
   }
 }
 
-// Run the migration
-migrateCurriculum();
+/**
+ * Main entry point - wrapped with error handling
+ */
+async function main() {
+  try {
+    // Display script header
+    console.log('╔════════════════════════════════════════════════════════╗');
+    console.log('║          CURRICULUM MIGRATION SCRIPT v1.0.0           ║');
+    console.log('╚════════════════════════════════════════════════════════╝');
+    
+    console.log(`Script starting at ${new Date().toISOString()}`);
+    console.log(`Current working directory: ${process.cwd()}`);
+    console.log(`Node.js version: ${process.version}`);
+    
+    // Load environment
+    console.log('Loading environment from .env.local...');
+    dotenv.config({ path: '.env.local' });
+    
+    // Verify environment variables
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+    
+    const envCheck = {
+      supabaseUrl: supabaseUrl ? 'defined' : 'missing',
+      serviceKey: supabaseServiceKey ? 'defined' : 'missing'
+    };
+    console.log('Environment variables check:', envCheck);
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Missing Supabase URL or service key');
+    }
+    
+    // Initialize Supabase client
+    const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
+    
+    // Run the migration with retry capability
+    await migrateCurriculum();
+    
+  } catch (error) {
+    console.error('╔════════════════════════════════════════════════════════╗');
+    console.error('║                  MIGRATION FAILED                      ║');
+    console.error('╚════════════════════════════════════════════════════════╝');
+    console.error(error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+      console.error('Stack trace:', error.stack);
+    }
+    process.exit(1);
+  }
+}
 
+// Run the script
+main();
