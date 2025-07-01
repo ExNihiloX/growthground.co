@@ -6,23 +6,27 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useAppStore } from '@/lib/store-db';
-import { Module } from '@/lib/services/content-service';
 import { cn } from '@/lib/utils';
+import { Module } from '@/app/dashboard/DashboardClient';
 
 interface ModuleCardProps {
   module: Module;
-  onStartModule: (module: Module) => void;
+  onStartModule: () => void;
+  completedLessons: Set<string>;
 }
 
-export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
-  const { userProgress, progressLoading } = useAppStore();
+export default function ModuleCard({ module, onStartModule, completedLessons }: ModuleCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   
-  // Get progress from the store which is loaded from the database
-  const progress = userProgress.moduleProgress[module.id] || 0;
-  const isCompleted = progress === 100;
-  const isStarted = progress > 0;
+  // Calculate progress based on completed lessons
+  const totalLessons = module.lessons?.length || 0;
+  const completedInThisModule = module.lessons?.filter(lesson => 
+    completedLessons.has(lesson.id)
+  ).length || 0;
+  
+  const progress = totalLessons > 0 ? Math.round((completedInThisModule / totalLessons) * 100) : 0;
+  const isCompleted = totalLessons > 0 && completedInThisModule === totalLessons;
+  const isStarted = completedInThisModule > 0;
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -53,11 +57,11 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => !module.is_locked && onStartModule(module)}
+      onClick={() => !module.is_locked && onStartModule()}
     >
       <div className="relative">
         <img
-          src={module.thumbnail}
+          src={module.thumbnail_url || '/images/module-placeholder.jpg'}
           alt={module.title}
           className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
         />
@@ -69,8 +73,8 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
             <Badge className={getDifficultyColor(module.difficulty)}>
               {module.difficulty}
             </Badge>
-            <Badge className={getCategoryColor(module.category)}>
-              {module.category}
+            <Badge className="bg-blue-100 text-blue-800">
+              {module.category_id || 'General'}
             </Badge>
           </div>
           {isCompleted && (
@@ -119,11 +123,11 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
         <div className="grid grid-cols-2 gap-4 text-sm text-gray-500 mb-4">
           <div className="flex items-center gap-1">
             <BookOpen className="h-4 w-4" />
-            <span>{module.lessons?.length || 'TBD'} lessons</span>
+            <span>{module.lessons?.length || 0} lessons</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>{Math.round(module.estimated_time / 60)}h {module.estimated_time % 60}m</span>
+            <span>{Math.round(module.estimated_time_minutes / 60)}h {module.estimated_time_minutes % 60}m</span>
           </div>
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
@@ -135,19 +139,7 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
           </div>
         </div>
 
-        {/* Prerequisites */}
-        {module.prerequisites && module.prerequisites.length > 0 && (
-          <div className="mb-4">
-            <p className="text-xs text-gray-500 mb-2">Prerequisites:</p>
-            <div className="flex flex-wrap gap-1">
-              {module.prerequisites.map((prereq) => (
-                <Badge key={prereq} variant="outline" className="text-xs">
-                  {prereq.replace('-', ' ')}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* We could fetch prerequisites from a related table if needed */}
 
         {/* Progress bar */}
         {isStarted && (
@@ -160,21 +152,18 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
           </div>
         )}
 
-        {/* Learning outcomes preview */}
+        {/* Key skills or outcomes could come from a separate table */}
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-2">You'll learn to:</p>
+          <p className="text-xs text-gray-500 mb-2">Course highlights:</p>
           <ul className="text-xs text-gray-600 space-y-1">
-            {module.learning_outcomes.slice(0, 2).map((outcome, index) => (
-              <li key={index} className="flex items-start gap-1">
-                <span className="text-green-500 mt-0.5">•</span>
-                <span className="line-clamp-1">{outcome}</span>
-              </li>
-            ))}
-            {module.learning_outcomes.length > 2 && (
-              <li className="text-gray-400">
-                +{module.learning_outcomes.length - 2} more outcomes
-              </li>
-            )}
+            <li className="flex items-start gap-1">
+              <span className="text-green-500 mt-0.5">•</span>
+              <span className="line-clamp-1">{module.description.split('.')[0]}</span>
+            </li>
+            <li className="flex items-start gap-1">
+              <span className="text-green-500 mt-0.5">•</span>
+              <span className="line-clamp-1">Taught by {module.instructor}</span>
+            </li>
           </ul>
         </div>
 
@@ -191,7 +180,7 @@ export function ModuleCard({ module, onStartModule }: ModuleCardProps) {
           disabled={module.is_locked}
           onClick={(e) => {
             e.stopPropagation();
-            if (!module.is_locked) onStartModule(module);
+            if (!module.is_locked) onStartModule();
           }}
         >
           {module.is_locked ? (

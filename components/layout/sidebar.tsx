@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Dispatch, SetStateAction } from 'react';
 import { 
   Home, 
   BookOpen, 
@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useAppStore } from '@/lib/store';
 
 const navigationItems = [
   { id: 'dashboard', title: 'Dashboard', icon: Home, href: '/' },
@@ -27,8 +26,13 @@ const navigationItems = [
   { id: 'help', title: 'Help', icon: HelpCircle, href: '/help' },
 ];
 
-export function Sidebar() {
-  const { sidebarOpen, setSidebarOpen, currentPage, setCurrentPage } = useAppStore();
+interface SidebarProps {
+  currentPage: string;
+  setCurrentPage: Dispatch<SetStateAction<string>>;
+}
+
+export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleNavigation = (itemId: string) => {
     setCurrentPage(itemId);

@@ -82,28 +82,32 @@ export interface Database {
           difficulty: string;
           category_id: string | null;
           instructor: string;
-          rating: number;
+          rating: number; // This is actually numeric in the DB
           students_enrolled: number;
           is_locked: boolean;
-          sort_order: number;
+          sort_order: number | null;
           created_at: string;
           updated_at: string;
+          learning_outcomes: string[];
+          prerequisites: string[] | null;
         };
         Insert: {
           id: string;
           title: string;
           description: string;
           thumbnail_url?: string | null;
-          estimated_time_minutes?: number;
+          estimated_time_minutes?: number; // Default: 0
           difficulty: string;
           category_id?: string | null;
-          instructor?: string;
-          rating?: number;
-          students_enrolled?: number;
-          is_locked?: boolean;
-          sort_order?: number;
+          instructor?: string; // Default: 'GrowthGround Staff'
+          rating?: number; // Default: 4.9
+          students_enrolled?: number; // Default: 0
+          is_locked?: boolean; // Default: false
+          sort_order?: number | null; // Default: 0
           created_at?: string;
           updated_at?: string;
+          learning_outcomes?: string[]; // Default: '{}'
+          prerequisites?: string[] | null; // Default: '{}'
         };
         Update: {
           id?: string;
@@ -117,9 +121,11 @@ export interface Database {
           rating?: number;
           students_enrolled?: number;
           is_locked?: boolean;
-          sort_order?: number;
+          sort_order?: number | null;
           created_at?: string;
           updated_at?: string;
+          learning_outcomes?: string[];
+          prerequisites?: string[] | null;
         };
       };
       user_progress: {
@@ -175,6 +181,76 @@ export interface Database {
           module_id?: string;
           completed_at?: string;
           time_spent_minutes?: number;
+        };
+      };
+      lessons: {
+        Row: {
+          id: string;
+          module_id: string;
+          title: string;
+          description: string | null;
+          duration_minutes: number; // Default: 10
+          core_concepts: string[]; // Default: '{}'
+          analogy: string | null;
+          sort_order: number | null; // Default: 0
+          content: object | null; // This is jsonb in DB
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          module_id: string;
+          title: string;
+          description?: string | null;
+          duration_minutes?: number; // Default: 10
+          core_concepts?: string[]; // Default: '{}'
+          analogy?: string | null;
+          sort_order?: number | null; // Default: 0
+          content?: object | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          module_id?: string;
+          title?: string;
+          description?: string | null;
+          duration_minutes?: number;
+          core_concepts?: string[];
+          analogy?: string | null;
+          sort_order?: number | null;
+          content?: object | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      categories: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          color: string | null;
+          created_at: string;
+          updated_at: string;
+          sort_order: number | null;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          description?: string | null;
+          color?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          sort_order?: number | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          color?: string | null;
+          sort_order?: number | null;
+          created_at?: string;
+          updated_at?: string;
         };
       };
     };

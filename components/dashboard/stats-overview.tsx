@@ -2,45 +2,46 @@
 
 import { Clock, Award, TrendingUp, Target } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAppStore } from '@/lib/store';
 
-export function StatsOverview() {
-  const { userProgress, modules } = useAppStore();
+interface StatsProps {
+  stats: {
+    totalLessons: number;
+    completedLessons: number;
+    completionRate: number;
+    totalModules: number;
+    completedModules: number;
+  };
+}
 
-  const completedModules = Object.values(userProgress.moduleProgress).filter(
-    progress => progress === 100
-  ).length;
+export default function StatsOverview({ stats }: StatsProps) {
+  // Stats already calculated and passed from parent
 
-  const totalLessons = modules.reduce((acc, module) => acc + module.lessons.length, 0);
-  const completedLessons = userProgress.completedLessons.size;
-  const completionRate = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
-
-  const stats = [
+  const statsCards = [
     {
       icon: Clock,
       label: 'Hours Learned',
-      value: Math.round(userProgress.totalTimeSpent / 60),
+      value: '0', // Could be added to stats in future
       color: 'from-blue-500 to-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
       icon: Award,
       label: 'Courses Completed',
-      value: completedModules,
+      value: stats.completedModules,
       color: 'from-green-500 to-green-600',
       bgColor: 'bg-green-50',
     },
     {
       icon: TrendingUp,
       label: 'Completion Rate',
-      value: `${completionRate}%`,
+      value: `${stats.completionRate}%`,
       color: 'from-purple-500 to-purple-600',
       bgColor: 'bg-purple-50',
     },
     {
       icon: Target,
       label: 'Lessons Completed',
-      value: completedLessons,
+      value: stats.completedLessons,
       color: 'from-orange-500 to-orange-600',
       bgColor: 'bg-orange-50',
     },
@@ -48,7 +49,7 @@ export function StatsOverview() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {stats.map((stat) => {
+      {statsCards.map((stat) => {
         const Icon = stat.icon;
         
         return (

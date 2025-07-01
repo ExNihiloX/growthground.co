@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "NODE_OPTIONS=\"--max-old-space-size=4096\" next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate-curriculum": "tsx scripts/migrate-curriculum.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -72,5 +73,8 @@
     "vaul": "^0.9.9",
     "zod": "^3.23.8",
     "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.3"
   }
 }

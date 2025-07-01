@@ -96,15 +96,37 @@ export const useAppStore = create<AppState>()(
         try {
           set({ modulesLoading: true, modulesError: null });
           
-          const response = await fetch(`/api/modules?include_lessons=${includeLessons}`);
+          // Use the client-side Supabase client directly
+          const { createClient } = await import('@/lib/supabase/client');
+          const supabase = createClient();
           
-          if (!response.ok) {
-            throw new Error('Failed to fetch modules');
+          // Fetch modules
+          let query = supabase
+            .from('modules')
+            .select('*')
+            .order('sort_order');
+          
+          const { data: modules, error } = await query;
+          
+          if (error) throw error;
+          
+          // If lessons should be included, fetch them for each module
+          if (includeLessons && modules) {
+            for (const module of modules) {
+              const { data: lessonData, error: lessonError } = await supabase
+                .from('lessons')
+                .select('*')
+                .eq('module_id', module.id)
+                .order('sort_order');
+                
+              if (!lessonError && lessonData) {
+                module.lessons = lessonData;
+              }
+            }
           }
           
-          const data = await response.json();
           set({ 
-            modules: data.modules,
+            modules: modules || [],
             modulesLoading: false 
           });
         } catch (error) {
@@ -120,13 +142,31 @@ export const useAppStore = create<AppState>()(
         try {
           set({ modulesLoading: true, modulesError: null });
           
-          const response = await fetch(`/api/modules/${moduleId}`);
+          // Use the client-side Supabase client directly
+          const { createClient } = await import('@/lib/supabase/client');
+          const supabase = createClient();
           
-          if (!response.ok) {
-            throw new Error('Failed to fetch module');
-          }
+          // Fetch the specific module
+          const { data: module, error } = await supabase
+            .from('modules')
+            .select('*')
+            .eq('id', moduleId)
+            .single();
           
-          const data = await response.json();
+          if (error) throw error;
+          if (!module) throw new Error('Module not found');
+          
+          // Fetch the lessons for this module
+          const { data: lessons, error: lessonsError } = await supabase
+            .from('lessons')
+            .select('*')
+            .eq('module_id', moduleId)
+            .order('sort_order');
+          
+          if (lessonsError) throw lessonsError;
+          
+          // Add lessons to the module
+          module.lessons = lessons || [];
           
           // Update the module in the modules array
           set((state) => {
@@ -134,15 +174,15 @@ export const useAppStore = create<AppState>()(
             const moduleIndex = updatedModules.findIndex(m => m.id === moduleId);
             
             if (moduleIndex >= 0) {
-              updatedModules[moduleIndex] = data.module;
+              updatedModules[moduleIndex] = module;
             } else {
-              updatedModules.push(data.module);
+              updatedModules.push(module);
             }
             
-            return { 
+            return {
               modules: updatedModules,
-              currentModule: data.module,
-              modulesLoading: false 
+              currentModule: module,
+              modulesLoading: false
             };
           });
         } catch (error) {
