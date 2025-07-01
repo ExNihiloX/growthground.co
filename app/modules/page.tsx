@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
+import { Sidebar } from '@/components/layout/sidebar';
 import { CoursesPage as ModulesPageComponent } from '@/components/pages/courses-page';
 import { Metadata } from 'next';
 
@@ -22,10 +23,15 @@ export default async function ModulesPage() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ModulesPageComponent />
+      <div className="flex flex-1">
+        <Sidebar currentPage="modules" setCurrentPage={() => {}} />
+        <main className="flex-1 lg:ml-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <ModulesPageComponent />
+          </div>
+        </main>
       </div>
       <Footer />
     </div>
