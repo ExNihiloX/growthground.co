@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'; // Use the server client
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import DashboardClient from './DashboardClient';
 import { Metadata } from 'next';
@@ -19,7 +18,8 @@ const CATEGORY_NAMES: Record<string, string> = {
 };
 
 export default async function DashboardPage() {
-  const supabase = createClient();
+  // Create the Supabase client (now awaits cookies() internally)
+  const supabase = await createClient();
 
   // Check for active session
   const { data: { session } } = await supabase.auth.getSession();
@@ -44,7 +44,7 @@ export default async function DashboardPage() {
   // Build a map of category IDs to names
   const categoryMap: Record<string, string> = {};
   if (categories) {
-    categories.forEach((cat) => {
+    categories.forEach((cat: { id: string; name: string }) => {
       categoryMap[cat.id] = cat.name;
     });
   } else {
@@ -76,7 +76,7 @@ export default async function DashboardPage() {
   }
 
   // Create a Set for quick lookup of completed lesson IDs
-  const completedLessonIds = new Set(completedLessons?.map(l => l.lesson_id) || []);
+  const completedLessonIds = new Set(completedLessons?.map((l: { lesson_id: string }) => l.lesson_id) || [] as string[]);
 
   // Pass all the fetched data as props to the Client Component
   return (

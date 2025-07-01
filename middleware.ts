@@ -1,43 +1,16 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse, type NextRequest } from 'next/server'
+import { Database } from '@/lib/database.types'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+  // Create a response object that we'll modify
+  const response = NextResponse.next()
+  
+  // Create the Supabase middleware client using auth-helpers
+  const supabase = createMiddlewareClient<Database>({ 
+    req: request, 
+    res: response 
   })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          // Next.js doesn't have a remove method on response.cookies, so we set with empty value
-          response.cookies.set({ name, value: '', ...options })
-        },
-      },
-    }
-  )
 
   const {
     data: { session },
@@ -91,6 +64,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files 
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

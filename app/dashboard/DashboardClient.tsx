@@ -53,8 +53,6 @@ export default function DashboardClient({
   categories
 }: DashboardClientProps) {
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(initialCompletedLessons);
-  const [currentPage, setCurrentPage] = useState<string>('dashboard');
-  const [currentModule, setCurrentModule] = useState<Module | null>(null);
   const router = useRouter();
   const supabase = createClient();
   
@@ -77,8 +75,6 @@ export default function DashboardClient({
 
   // Start a module and navigate to its lessons
   const handleStartModule = useCallback((module: Module) => {
-    setCurrentModule(module);
-    setCurrentPage('lesson-viewer');
     router.push(`/dashboard/modules/${module.id}`);
   }, [router]);
 
@@ -141,7 +137,7 @@ export default function DashboardClient({
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       <div className="flex flex-1">
-        <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+        <Sidebar currentPage="dashboard" setCurrentPage={() => {}} />
         <main className="flex-1 lg:ml-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Welcome Section */}

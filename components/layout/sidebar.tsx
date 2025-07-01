@@ -10,13 +10,17 @@ import {
   BarChart3,
   Calendar,
   Users,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
 
 const navigationItems = [
-  { id: 'dashboard', title: 'Dashboard', icon: Home, href: '/' },
+  { id: 'dashboard', title: 'Dashboard', icon: Home, href: '/dashboard' },
   { id: 'modules', title: 'All Modules', icon: BookOpen, href: '/modules' },
   { id: 'progress', title: 'Progress', icon: BarChart3, href: '/progress' },
   { id: 'achievements', title: 'Achievements', icon: Award, href: '/achievements' },
@@ -33,6 +37,8 @@ interface SidebarProps {
 
 export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname(); // Get current pathname
+  const { signOut } = useAuth(); // Access auth context
 
   const handleNavigation = (itemId: string) => {
     setCurrentPage(itemId);
@@ -76,27 +82,40 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
           <nav className="flex-1 px-4 py-6 space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentPage === item.id;
+              const isActive = pathname === item.href;
               
               return (
-                <button
+                <Link
                   key={item.id}
-                  onClick={() => handleNavigation(item.id)}
+                  href={item.href}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200",
                     isActive 
                       ? "bg-blue-50 text-blue-700 border border-blue-200" 
                       : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                   )}
+                  onClick={() => setSidebarOpen(false)}
                 >
                   <Icon className={cn(
                     "h-5 w-5",
                     isActive ? "text-blue-600" : "text-gray-500"
                   )} />
                   <span className="font-medium">{item.title}</span>
-                </button>
+                </Link>
               );
             })}
+            
+            {/* Logout Button */}
+            <button
+              onClick={() => {
+                signOut();
+                setSidebarOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            >
+              <LogOut className="h-5 w-5 text-gray-500" />
+              <span className="font-medium">Sign Out</span>
+            </button>
           </nav>
 
           {/* Footer */}
