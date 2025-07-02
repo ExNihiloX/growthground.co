@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { MarketingHeader } from '@/components/layout/marketing-header';
 
 export default function PrivacyPage() {
   const lastUpdated = "January 15, 2024";
@@ -114,31 +115,7 @@ export default function PrivacyPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-2 rounded-xl">
-                <BookOpen className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">GrowthGround</span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/auth/login">
-                <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-                  Log In
-                </Button>
-              </Link>
-              <Link href="/auth/signup">
-                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
-                  Get Started
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <MarketingHeader />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">

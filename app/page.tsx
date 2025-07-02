@@ -8,20 +8,24 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   BookOpen, 
-  Play, 
-  Users, 
-  Star, 
   ArrowRight, 
-  CheckCircle, 
-  Menu,
-  X,
+  Layout, 
+  CheckCircle,
+  User,
+  Sparkles,
   Zap,
-  Target,
+  Code,
+  Lightbulb,
   Award,
+  Smile,
+  Play,
+  Star,
+  Users,
   TrendingUp
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { MarketingHeader } from '@/components/layout/marketing-header';
+import { cn } from '@/lib/utils';
 
 export default function HomePage() {
   const { user } = useSession();
@@ -59,7 +63,7 @@ export default function HomePage() {
       color: 'from-purple-500 to-purple-600'
     },
     {
-      icon: Target,
+      icon: Layout,
       title: 'Founder-Focused',
       description: 'Designed specifically for entrepreneurs who need to understand technology.',
       color: 'from-green-500 to-green-600'
@@ -105,110 +109,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-2 rounded-xl">
-                <BookOpen className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">GrowthGround</span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Home
-              </Link>
-              <Link href="/about" className="text-gray-600 hover:text-gray-900 transition-colors">
-                About Us
-              </Link>
-              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Features
-              </a>
-              <a href="#curriculum" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Curriculum
-              </a>
-              <Link href="/donate" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Donate
-              </Link>
-            </nav>
-
-            {/* Desktop Auth Buttons */}
-            <div className="hidden md:flex items-center gap-4">
-              <Link href="/auth/login">
-                <Button 
-                  variant="ghost" 
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  Log In
-                </Button>
-              </Link>
-              <Link href="/auth/signup">
-                <Button 
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                >
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6 text-gray-600" />
-              ) : (
-                <Menu className="h-6 w-6 text-gray-600" />
-              )}
-            </button>
-          </div>
-
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200">
-              <nav className="flex flex-col gap-4">
-                <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
-                  Home
-                </Link>
-                <Link href="/about" className="text-gray-600 hover:text-gray-900 transition-colors">
-                  About Us
-                </Link>
-                <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
-                  Features
-                </a>
-                <a href="#curriculum" className="text-gray-600 hover:text-gray-900 transition-colors">
-                  Curriculum
-                </a>
-                <Link href="/donate" className="text-gray-600 hover:text-gray-900 transition-colors">
-                  Donate
-                </Link>
-                <div className="flex flex-col gap-2 pt-4 border-t border-gray-200">
-                  <Link href="/auth/login">
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                    >
-                      Log In
-                    </Button>
-                  </Link>
-                  <Link href="/auth/signup">
-                    <Button 
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                    >
-                      Sign Up
-                    </Button>
-                  </Link>
-                </div>
-              </nav>
-            </div>
-          )}
-        </div>
-      </header>
+      <MarketingHeader />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
