@@ -5,19 +5,10 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-// Response type for auth actions
-export type AuthResponse = {
-  success?: boolean;
-  error?: string;
-  user?: any;
-  redirectTo?: string;
-  needsEmailVerification?: boolean;
-};
-
-// Validation schemas for form data
+// Validation schemas
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(1, 'Password cannot be empty'),
 });
 
 const signupSchema = z.object({
@@ -26,239 +17,133 @@ const signupSchema = z.object({
   name: z.string().min(2, 'Please enter your name'),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+});
+
+const resetPasswordSchema = z.object({
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+
 /**
- * Server action for user login
+ * Server action for user login.
  */
-export async function login(formData: FormData): Promise<AuthResponse> {
-  // Extract and validate form data
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  
-  // Validate inputs
-  const result = loginSchema.safeParse({ email, password });
+export async function login(formData: FormData) {
+  const supabase = createClient();
+
+  const result = loginSchema.safeParse(Object.fromEntries(formData));
+
   if (!result.success) {
-    return { 
-      error: result.error.errors[0].message 
-    };
+    const errorQuery = new URLSearchParams({ error: result.error.errors[0].message }).toString();
+    return redirect(`/auth/login?${errorQuery}`);
   }
 
-  // Create Supabase client for server environment
-  const supabase = await createClient();
-  
-  // Authenticate the user
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  
+  const { email, password } = result.data;
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
   if (error) {
     console.error('Login error:', error.message);
-    return { 
-      error: 'Invalid email or password' 
-    };
+    return redirect('/auth/login?error=Invalid email or password');
   }
 
-  // Successful login
-  console.log('User logged in:', data.user.email);
-  
-  // No need to redirect here - this allows the client to handle
-  // success/error states and show appropriate messages
-  return { success: true };
+  return redirect('/dashboard');
 }
 
 /**
- * Server action for user signup
+ * Server action for user signup.
  */
-export async function signup(formData: FormData): Promise<AuthResponse> {
-  // Extract and validate form data
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const name = formData.get('name') as string;
-  
-  console.log('Server action signup called with:', { email, name });
-  
-  // Validate inputs
-  const result = signupSchema.safeParse({ email, password, name });
+export async function signup(formData: FormData) {
+  const supabase = createClient();
+
+  const result = signupSchema.safeParse(Object.fromEntries(formData));
+
   if (!result.success) {
-    console.error('Validation error:', result.error.errors);
-    return { 
-      error: result.error.errors[0].message 
-    };
-  }
-
-  // Create Supabase client for server environment
-  const supabase = await createClient();
-  
-  try {
-    // Register the user
-    console.log('Attempting to create user in Supabase...');
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: name,
-        },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/callback`,
-      },
-    });
-    
-    if (error) {
-      console.error('Supabase signup error:', error);
-      return { 
-        error: error.message || 'Failed to create account' 
-      };
-    }
-
-    console.log('Supabase signup successful:', { 
-      user: data.user?.email, 
-      session: !!data.session,
-      needsConfirmation: !data.session 
-    });
-
-    // Check if email confirmation is required
-    const requiresEmailVerification = !data.session;
-    
-    if (!requiresEmailVerification && data.user) {
-      // User is auto-confirmed, create profile
-      console.log('User auto-confirmed, creating profile...');
-      
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          name: name,
-          email: email,
-          avatar_url: null,
-        });
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Don't fail the signup for profile creation errors
-      } else {
-        console.log('Profile created successfully');
-      }
-
-      // Create default user preferences
-      const { error: prefsError } = await supabase
-        .from('user_preferences')
-        .insert({
-          id: data.user.id,
-          theme: 'light',
-          email_notifications: true,
-          push_notifications: false,
-          reminder_notifications: true,
-          profile_visible: true,
-          progress_visible: true,
-          daily_goal_minutes: 30,
-          reminder_time: '09:00',
-          autoplay: true,
-        });
-
-      if (prefsError) {
-        console.error('User preferences creation error:', prefsError);
-      }
-
-      // Create initial progress record
-      const { error: progressError } = await supabase
-        .from('user_progress')
-        .insert({
-          user_id: data.user.id,
-          total_time_spent_minutes: 0,
-          current_streak_days: 0,
-          last_activity_date: new Date().toISOString().split('T')[0],
-        });
-
-      if (progressError) {
-        console.error('User progress creation error:', progressError);
-      }
-    }
-    
-    return { 
-      success: true,
-      needsEmailVerification: requiresEmailVerification,
-      user: data.user
-    };
-    
-  } catch (err: any) {
-    console.error('Unexpected signup error:', err);
-    return { 
-      error: 'An unexpected error occurred during signup' 
-    };
-  }
-}
-
-/**
- * Server action for password reset request
- */
-export async function forgotPassword(formData: FormData): Promise<AuthResponse> {
-  const email = formData.get('email') as string;
-  
-  if (!email || !email.includes('@')) {
-    return { error: 'Please enter a valid email address' };
-  }
-
-  // Create Supabase client for server environment
-  const supabase = await createClient();
-  
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/callback?next=/auth/reset-password`,
-  });
-  
-  if (error) {
-    console.error('Password reset error:', error);
-    return { error: 'Failed to send password reset email' };
-  }
-
-  return { success: true };
-}
-
-/**
- * Server action for password reset execution
- */
-export async function resetPassword(formData: FormData): Promise<AuthResponse> {
-  const password = formData.get('password') as string;
-  const confirmPassword = formData.get('confirmPassword') as string;
-  
-  if (password.length < 6) {
-    return { error: 'Password must be at least 6 characters' };
+    const errorQuery = new URLSearchParams({ error: result.error.errors[0].message }).toString();
+    return redirect(`/auth/signup?${errorQuery}`);
   }
   
-  if (password !== confirmPassword) {
-    return { error: 'Passwords do not match' };
-  }
+  const { email, password, name } = result.data;
 
-  // Create Supabase client for server environment
-  const supabase = await createClient();
-  
-  const { error } = await supabase.auth.updateUser({
+  const { data, error } = await supabase.auth.signUp({
+    email,
     password,
+    options: {
+      data: { full_name: name },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`,
+    },
   });
-  
+
   if (error) {
-    console.error('Reset password error:', error);
-    return { error: 'Failed to reset password' };
+    console.error('Supabase signup error:', error);
+    return redirect(`/auth/signup?error=${encodeURIComponent(error.message)}`);
   }
 
-  return { success: true };
+  if (data.user && !data.session) {
+    return redirect(`/auth/verification?email=${encodeURIComponent(email)}`);
+  }
+
+  return redirect('/dashboard');
 }
 
 /**
- * Server action for user logout
+ * Server action for sending a password reset link.
  */
-export async function logout(): Promise<AuthResponse> {
-  // Create Supabase client for server environment
-  const supabase = await createClient();
-  
-  // Sign out the user
+export async function forgotPassword(formData: FormData) {
+  const supabase = createClient();
+
+  const result = forgotPasswordSchema.safeParse(Object.fromEntries(formData));
+
+  if (!result.success) {
+    const errorQuery = new URLSearchParams({ error: result.error.errors[0].message }).toString();
+    return redirect(`/auth/forgot-password?${errorQuery}`);
+  }
+
+  const { email } = result.data;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/reset-password`,
+  });
+
+  if (error) {
+    console.error('Forgot password error:', error.message);
+    return redirect(`/auth/forgot-password?error=${encodeURIComponent('Could not send password reset email.')}`);
+  }
+
+  return redirect('/auth/forgot-password?message=Password reset link sent. Please check your email.');
+}
+
+/**
+ * Server action for resetting the user's password.
+ */
+export async function resetPassword(formData: FormData) {
+  const supabase = createClient();
+
+  const result = resetPasswordSchema.safeParse(Object.fromEntries(formData));
+
+  if (!result.success) {
+    const errorQuery = new URLSearchParams({ error: result.error.errors[0].message }).toString();
+    return redirect(`/auth/reset-password?${errorQuery}`);
+  }
+
+  const { password } = result.data;
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    console.error('Reset password error:', error.message);
+    return redirect(`/auth/reset-password?error=${encodeURIComponent('Failed to reset password. The link may have expired.')}`);
+  }
+
+  return redirect('/auth/login?message=Password reset successfully. Please log in.');
+}
+
+/**
+ * Server action for user logout.
+ */
+export async function logout() {
+  const supabase = createClient();
   await supabase.auth.signOut();
-  
-  // Sign out the user from Supabase should handle most cookie clearing
-  // but we'll let the client-side navigation handle the rest
-  
-  // For security, we will use an alternative approach to ensure logout:
-  // We'll return specific instructions to force the client to clear cookies and reload
-  
-  // Return success with redirect information
-  return { success: true, redirectTo: '/' };
+  return redirect('/auth/login');
 }

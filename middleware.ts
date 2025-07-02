@@ -1,79 +1,84 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { Database } from '@/lib/database.types'
 
 export async function middleware(request: NextRequest) {
-  // Create a response object that we'll modify
-  const response = NextResponse.next()
-  
-  // Create the Supabase middleware client using auth-helpers
-  const supabase = createMiddlewareClient<Database>({ 
-    req: request, 
-    res: response 
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
   })
 
-  // Get session with error handling
-  try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
-    const { pathname } = request.nextUrl
-    
-    if (sessionError) {
-      console.error('Middleware session error:', sessionError)
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({ name, value, ...options })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({ name, value, ...options })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({ name, value: '', ...options })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          // Use set with empty value instead of remove (which isn't available)
+          response.cookies.set({ name, value: '', ...options })
+        },
+      },
     }
+  )
 
-    // **Protect the dashboard and related routes**
-    if (!session && (
-      pathname.startsWith('/dashboard') ||
-      pathname.startsWith('/profile') ||
-      pathname.startsWith('/modules') ||
-      pathname.startsWith('/lessons') ||
-      pathname.startsWith('/settings') ||
-      pathname.startsWith('/progress') ||
-      pathname.startsWith('/achievements') ||
-      pathname.startsWith('/community') ||
-      pathname.startsWith('/help') ||
-      pathname.startsWith('/schedule')
-    )) {
-      console.log('Protected route, no session - redirecting to login')
-      const url = request.nextUrl.clone()
-      url.pathname = '/auth/login'
-      // Store the original URL to redirect back after login
-      url.searchParams.set('redirectUrl', pathname)
-      return NextResponse.redirect(url)
-    }
+  // Use the more secure getUser() which validates the session on the server
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-    // **Redirect authenticated users away from auth pages**
-    if (session && (
-      pathname.startsWith('/auth/login') || 
-      pathname.startsWith('/auth/signup') ||
-      pathname.startsWith('/auth/forgot-password') ||
-      pathname.startsWith('/auth/reset-password')
-    )) {
-      console.log('Auth page accessed with session - redirecting to dashboard')
-      const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
-    }
+  const { pathname } = request.nextUrl
 
-    // For all other requests, return the response with the updated cookies
-    return response
-  } catch (error) {
-    console.error('Middleware error:', error)
-    return response
+  // Define protected routes
+  const protectedRoutes = [
+    '/dashboard',
+    '/profile',
+    '/modules',
+    '/lessons',
+    '/settings',
+    '/progress',
+    '/achievements',
+    '/community',
+    '/help',
+    '/schedule'
+  ];
+
+  const isProtectedRoute = protectedRoutes.some(path => pathname.startsWith(path));
+
+  // If the user is not logged in and trying to access a protected route, redirect them
+  if (!user && isProtectedRoute) {
+    return NextResponse.redirect(new URL('/auth/login', request.url))
   }
+
+  // If the user is logged in and trying to access an auth page (except callback), redirect them
+  if (user && pathname.startsWith('/auth')) {
+    if (pathname !== '/auth/callback') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
+  return response
 }
 
-// Configure the middleware matcher to only run where needed
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files 
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-};
+}
