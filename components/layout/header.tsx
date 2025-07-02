@@ -103,8 +103,17 @@ export function Header() {
   const handleSignOut = async () => {
     try {
       // Call the server action to handle logout
-      await logout();
-      // Note: No need to router.push as the logout action handles redirect
+      const response = await logout();
+      
+      // Force a full page reload instead of using router.push
+      if (response.success) {
+        // Clear any client-side storage
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Force a complete page reload to the home page
+        window.location.href = response.redirectTo || '/';
+      }
     } catch (error) {
       console.error('Error signing out:', error);
     }

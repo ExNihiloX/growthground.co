@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from '@/components/providers/session-provider';
 import { logout } from '@/app/auth/actions';
 
@@ -39,6 +39,7 @@ interface SidebarProps {
 export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname(); // Get current pathname
+  const router = useRouter(); // Get router for navigation
   // Use the session from SessionProvider instead of auth context
 
   const handleNavigation = (itemId: string) => {
@@ -109,10 +110,23 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
             {/* Logout Button */}
             <button
               onClick={async () => {
-                // Call the server action to handle logout
-                await logout();
-                // Note: No need for additional handling as logout action handles redirect
-                setSidebarOpen(false);
+                try {
+                  // Call the server action to handle logout
+                  const response = await logout();
+                  setSidebarOpen(false);
+                  
+                  // Force a full page reload instead of using router.push
+                  if (response.success) {
+                    // Clear any client-side storage
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Force a complete page reload to the home page
+                    window.location.href = response.redirectTo || '/';
+                  }
+                } catch (error) {
+                  console.error('Error signing out:', error);
+                }
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
             >

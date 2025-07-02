@@ -5,6 +5,15 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+// Response type for auth actions
+export type AuthResponse = {
+  success?: boolean;
+  error?: string;
+  user?: any;
+  redirectTo?: string;
+  needsEmailVerification?: boolean;
+};
+
 // Validation schemas for form data
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -16,13 +25,6 @@ const signupSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().min(2, 'Please enter your name'),
 });
-
-// Return type for auth functions
-type AuthResponse = {
-  error?: string;
-  success?: boolean;
-  needsEmailVerification?: boolean;
-};
 
 /**
  * Server action for user login
@@ -178,16 +180,19 @@ export async function resetPassword(formData: FormData): Promise<AuthResponse> {
 /**
  * Server action for user logout
  */
-export async function logout() {
+export async function logout(): Promise<AuthResponse> {
   // Create Supabase client for server environment
   const supabase = await createClient();
   
   // Sign out the user
   await supabase.auth.signOut();
   
-  // Note: signOut() above should handle clearing the auth cookies, so we don't need to manually delete them.
-  // The supabase.auth.signOut() method already cleans up cookies automatically.
+  // Sign out the user from Supabase should handle most cookie clearing
+  // but we'll let the client-side navigation handle the rest
   
-  // Redirect to home page after logout
-  redirect('/');
+  // For security, we will use an alternative approach to ensure logout:
+  // We'll return specific instructions to force the client to clear cookies and reload
+  
+  // Return success with redirect information
+  return { success: true, redirectTo: '/' };
 }
