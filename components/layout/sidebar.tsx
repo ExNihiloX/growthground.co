@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Dispatch, SetStateAction } from 'react';
+import { useState } from 'react';
 import { 
   Home, 
   BookOpen, 
@@ -33,19 +33,14 @@ const navigationItems = [
 
 interface SidebarProps {
   currentPage: string;
-  setCurrentPage: Dispatch<SetStateAction<string>>;
 }
 
-export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
+export function Sidebar({ currentPage }: SidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname(); // Get current pathname
   const router = useRouter(); // Get router for navigation
   // Use the session from SessionProvider instead of auth context
 
-  const handleNavigation = (itemId: string) => {
-    setCurrentPage(itemId);
-    setSidebarOpen(false);
-  };
 
   return (
     <>
