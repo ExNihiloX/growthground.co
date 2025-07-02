@@ -9,7 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAppStore } from '@/lib/store';
-import { useAuth } from '@/contexts/auth-context';
+import { useSession } from '@/components/providers/session-provider';
+import { logout } from '@/app/auth/actions';
 import { masterCurriculum } from '@/lib/curriculum';
 import { SearchResult } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -17,7 +18,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user } = useSession();
   const router = useRouter();
   const { 
     sidebarOpen, 
@@ -95,8 +96,9 @@ export function Header() {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
-      router.push('/');
+      // Call the server action to handle logout
+      await logout();
+      // Note: No need to router.push as the logout action handles redirect
     } catch (error) {
       console.error('Error signing out:', error);
     }

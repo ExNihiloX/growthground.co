@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { signup } from '../actions';
+import { useSession } from '@/components/providers/session-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,66 +18,71 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const [isPending, startTransition] = useTransition();
+  const { user } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // If the user is already logged in, redirect to dashboard
+  if (user) {
+    router.push('/dashboard');
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     // Form validation
     if (!name.trim()) {
       setError('Name is required');
       return;
     }
-    
+
     if (!email.trim()) {
       setError('Email is required');
       return;
     }
-    
+
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
     }
-    
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    
-    setIsLoading(true);
-    
-    try {
-      console.log('Attempting to sign up user:', email);
-      const { error: signUpError, user } = await signUp(email, password, name);
-      
-      if (signUpError) {
-        console.error('Sign up failed:', signUpError);
-        throw signUpError;
-      }
-      
-      console.log('Sign up successful, user:', user);
-      
-      if (user) {
-        // Check if email confirmation is required
-        if (!user.email_confirmed_at) {
-          console.log('Email confirmation required, redirecting to verification page');
-          router.push('/auth/verification');
+
+    // Create form data to pass to server action
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+    formData.append('name', name);
+
+    // Use React's useTransition to indicate pending state
+    startTransition(async () => {
+      try {
+        // Call the server action
+        const result = await signup(formData);
+
+        // Check for errors
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
+
+        // If successful, navigate based on whether email verification is required
+        if (result.needsEmailVerification) {
+          router.push('/auth/verification?email=' + encodeURIComponent(email));
         } else {
-          console.log('User confirmed, redirecting to dashboard');
           router.push('/dashboard');
         }
-      } else {
-        throw new Error('Something went wrong. Please try again.');
+      } catch (err: any) {
+        console.error('Signup error:', err);
+        setError('An unexpected error occurred. Please try again.');
       }
-    } catch (err: any) {
-      console.error('Sign up error:', err);
-      setError(err.message || 'Failed to sign up. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -96,7 +102,7 @@ export default function SignUpPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input
@@ -105,11 +111,11 @@ export default function SignUpPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
-                disabled={isLoading}
+                disabled={isPending}
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -118,11 +124,11 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                disabled={isLoading}
+                disabled={isPending}
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -131,12 +137,12 @@ export default function SignUpPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                disabled={isLoading}
+                disabled={isPending}
                 required
                 minLength={6}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
@@ -145,14 +151,14 @@ export default function SignUpPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                disabled={isLoading}
+                disabled={isPending}
                 required
                 minLength={6}
               />
             </div>
-            
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
+
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Creating account...

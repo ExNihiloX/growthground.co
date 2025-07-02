@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
+import { useSession } from '@/components/providers/session-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,16 +24,17 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 export default function HomePage() {
-  const { user, isLoading } = useAuth();
+  const { user } = useSession();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Add local loading state if needed
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
-    if (!isLoading && user) {
+    if (user) {
       router.push('/dashboard');
     }
-  }, [user, isLoading, router]);
+  }, [user, router]);
 
   // Don't render anything while checking auth or if user is authenticated
   if (isLoading || user) {

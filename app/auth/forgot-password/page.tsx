@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
+import { forgotPassword } from '../actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,9 +13,8 @@ import { AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { forgotPassword } = useAuth();
+  const [isPending, startTransition] = useTransition();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,19 +25,26 @@ export default function ForgotPasswordPage() {
       return;
     }
     
-    setIsLoading(true);
+    // Create form data to pass to server action
+    const formData = new FormData();
+    formData.append('email', email);
     
-    try {
-      const { error: resetError } = await forgotPassword(email);
-      
-      if (resetError) throw resetError;
-      
-      setIsSubmitted(true);
-    } catch (err: any) {
-      setError(err.message || 'Failed to send password reset email. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    // Use React's useTransition to indicate pending state
+    startTransition(async () => {
+      try {
+        // Call the server action
+        const result = await forgotPassword(formData);
+        
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
+        
+        setIsSubmitted(true);
+      } catch (err: any) {
+        setError('Failed to send password reset email. Please try again.');
+      }
+    });
   };
 
   return (
@@ -68,12 +74,12 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  disabled={isLoading}
+                  disabled={isPending}
                 />
               </div>
               
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...

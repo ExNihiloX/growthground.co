@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/auth-context';
+import { useSession } from '@/components/providers/session-provider';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,12 +28,14 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 
 export default function ProfilePage() {
-  const { user, profile, isLoading } = useAuth();
+  const { user } = useSession();
+  const [profile, setProfile] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -72,21 +74,41 @@ export default function ProfilePage() {
 
   // Redirect unauthenticated users
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!user) {
       router.push('/auth/login');
+    } else {
+      fetchUserProfile();
     }
-  }, [user, isLoading, router]);
+  }, [user, router]);
 
-  // Load user data when available
-  useEffect(() => {
-    if (user && profile) {
+  // Fetch user profile data from Supabase
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    const supabase = createClient();
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      
+      setProfile(data);
       setFormData({
-        name: profile.name || '',
-        email: profile.email || '',
-        avatar_url: profile.avatar_url || '',
+        name: data?.name || '',
+        email: user.email || '',
+        avatar_url: data?.avatar_url || '',
       });
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [user, profile]);
+  };
 
   // Load user preferences
   useEffect(() => {
@@ -94,6 +116,7 @@ export default function ProfilePage() {
       if (!user) return;
 
       try {
+        const supabase = createClient();
         const { data, error } = await supabase
           .from('user_preferences')
           .select('*')
@@ -147,6 +170,8 @@ export default function ProfilePage() {
     setMessage(null);
 
     try {
+      const supabase = createClient();
+
       // Update profile
       const { error: profileError } = await supabase
         .from('profiles')
@@ -195,6 +220,7 @@ export default function ProfilePage() {
     setMessage(null);
 
     try {
+      const supabase = createClient();
       const { error } = await supabase.auth.updateUser({
         password: passwordData.newPassword
       });
@@ -222,6 +248,8 @@ export default function ProfilePage() {
     setMessage(null);
 
     try {
+      const supabase = createClient();
+      
       // Delete user data
       await supabase.from('user_preferences').delete().eq('id', user.id);
       await supabase.from('user_progress').delete().eq('user_id', user.id);
@@ -229,6 +257,7 @@ export default function ProfilePage() {
       await supabase.from('profiles').delete().eq('id', user.id);
 
       // Delete auth user
+      // Note: admin.deleteUser may require server-side access, so this might not work client-side
       const { error } = await supabase.auth.admin.deleteUser(user.id);
       if (error) throw error;
 

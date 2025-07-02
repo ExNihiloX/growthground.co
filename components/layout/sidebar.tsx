@@ -17,7 +17,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
+import { useSession } from '@/components/providers/session-provider';
+import { logout } from '@/app/auth/actions';
 
 const navigationItems = [
   { id: 'dashboard', title: 'Dashboard', icon: Home, href: '/dashboard' },
@@ -38,7 +39,7 @@ interface SidebarProps {
 export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname(); // Get current pathname
-  const { signOut } = useAuth(); // Access auth context
+  // Use the session from SessionProvider instead of auth context
 
   const handleNavigation = (itemId: string) => {
     setCurrentPage(itemId);
@@ -107,8 +108,10 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
             
             {/* Logout Button */}
             <button
-              onClick={() => {
-                signOut();
+              onClick={async () => {
+                // Call the server action to handle logout
+                await logout();
+                // Note: No need for additional handling as logout action handles redirect
                 setSidebarOpen(false);
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"

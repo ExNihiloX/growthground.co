@@ -12,14 +12,24 @@ export async function middleware(request: NextRequest) {
     res: response 
   })
 
-  const {
+  // Get session with more detailed logging for debugging
+  const sessionStart = Date.now()
+  const sessionResult = await supabase.auth.getSession()
+  const sessionDuration = Date.now() - sessionStart
+  
+  const { 
     data: { session },
-  } = await supabase.auth.getSession()
+    error: sessionError
+  } = sessionResult
 
   const { pathname } = request.nextUrl
-
-  // Log for debugging session detection
-  console.log('Middleware checking:', pathname, 'Session:', session ? 'Yes' : 'No')
+  
+  // Enhanced logging with more diagnostic information
+  console.log(`Middleware [${sessionDuration}ms] - Path: ${pathname}, Session: ${session ? `Valid (${session.user.email})` : 'None'}`)
+  
+  if (sessionError) {
+    console.error('Middleware session error:', sessionError)
+  }
 
   // **Protect the dashboard and related routes**
   if (!session && (

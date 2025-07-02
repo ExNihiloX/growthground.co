@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { login } from '../actions';
+import { useSession } from '@/components/providers/session-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,10 +17,19 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
+  const [isPending, startTransition] = useTransition();
+  const { user } = useSession();
   const router = useRouter();
-
+  const searchParams = useSearchParams();
+  const message = searchParams.get('message');
+  
+  // If the user is already logged in, redirect to dashboard
+  if (user) {
+    router.push('/dashboard');
+    return null;
+  }
+  
+  // Handle form submission using server action
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -29,46 +39,32 @@ export default function LoginPage() {
       return;
     }
     
-    setIsLoading(true);
+    // Create form data to pass to server action
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
     
-    try {
-      console.log('Attempting to sign in user:', email);
-      const { error: signInError, user } = await signIn(email, password);
-      
-      if (signInError) {
-        console.error('Sign in failed:', signInError);
-        throw signInError;
-      }
-      
-      console.log('Sign in successful, user object:', JSON.stringify({
-        id: user?.id,
-        email: user?.email,
-        metadata: user?.user_metadata,
-        hasUser: !!user
-      }, null, 2));
-      
-      if (user) {
-        // Get any redirectUrl from the URL parameters or default to dashboard
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectUrl = urlParams.get('redirectUrl') || '/dashboard';
+    // Use React's useTransition to indicate pending state
+    startTransition(async () => {
+      try {
+        // Call the server action
+        const result = await login(formData);
         
-        // NOTE: We no longer need to call router.refresh() here because it's already
-        // implemented in the auth context signIn function
+        // Check for errors
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
         
-        console.log('Auth successful - redirecting to:', redirectUrl);
-        
-        // Use Next.js router for client-side navigation
-        // The session cookie is already set by auth context and middleware will recognize it
+        // If successful, navigate to dashboard or the redirect URL
+        const redirectUrl = searchParams.get('redirectUrl') || '/dashboard';
         router.push(redirectUrl);
-      } else {
-        throw new Error('Something went wrong. Please try again.');
+        router.refresh(); // Refresh to ensure all server components update
+      } catch (err: any) {
+        console.error('Login error:', err);
+        setError('An unexpected error occurred. Please try again.');
       }
-    } catch (err: any) {
-      console.error('Sign in error:', err);
-      setError(err.message || 'Failed to sign in. Please check your credentials.');
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -97,7 +93,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                disabled={isLoading}
+                disabled={isPending}
                 required
               />
             </div>
@@ -118,7 +114,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                disabled={isLoading}
+                disabled={isPending}
                 required
               />
             </div>
@@ -130,8 +126,14 @@ export default function LoginPage() {
               </Label>
             </div>
             
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
+            {message && (
+              <Alert className="mb-4 border-blue-500 bg-blue-50 text-blue-800">
+                <AlertDescription>{message}</AlertDescription>
+              </Alert>
+            )}
+            
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Signing in...

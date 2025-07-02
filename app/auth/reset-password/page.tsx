@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useTransition } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { resetPassword } from '../actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,10 +15,10 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-  const { resetPassword } = useAuth();
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Check if we have a hash fragment in the URL (Supabase auth redirects with hash params)
   useEffect(() => {
@@ -45,24 +45,32 @@ export default function ResetPasswordPage() {
       return;
     }
     
-    setIsLoading(true);
+    // Create form data to pass to server action
+    const formData = new FormData();
+    formData.append('password', password);
+    formData.append('hash', window.location.hash.substring(1)); // Remove the # character
     
-    try {
-      const { error: resetError } = await resetPassword(password);
-      
-      if (resetError) throw resetError;
-      
-      setIsComplete(true);
-      
-      // Redirect to login page after short delay
-      setTimeout(() => {
-        router.push('/auth/login');
-      }, 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to reset password. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    // Use React's useTransition to indicate pending state
+    startTransition(async () => {
+      try {
+        // Call the server action
+        const result = await resetPassword(formData);
+        
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
+        
+        setIsComplete(true);
+        
+        // Redirect to login page after short delay
+        setTimeout(() => {
+          router.push('/auth/login?message=Your+password+has+been+reset+successfully');
+        }, 3000);
+      } catch (err: any) {
+        setError('Failed to reset password. Please try again.');
+      }
+    });
   };
 
   return (
@@ -100,7 +108,7 @@ export default function ResetPasswordPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  disabled={isLoading}
+                  disabled={isPending}
                 />
               </div>
               
@@ -112,12 +120,12 @@ export default function ResetPasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  disabled={isLoading}
+                  disabled={isPending}
                 />
               </div>
               
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Resetting password...
