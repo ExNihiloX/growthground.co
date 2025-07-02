@@ -75,9 +75,12 @@ export async function signup(formData: FormData): Promise<AuthResponse> {
   const password = formData.get('password') as string;
   const name = formData.get('name') as string;
   
+  console.log('Server action signup called with:', { email, name });
+  
   // Validate inputs
   const result = signupSchema.safeParse({ email, password, name });
   if (!result.success) {
+    console.error('Validation error:', result.error.errors);
     return { 
       error: result.error.errors[0].message 
     };
@@ -86,38 +89,101 @@ export async function signup(formData: FormData): Promise<AuthResponse> {
   // Create Supabase client for server environment
   const supabase = await createClient();
   
-  // Register the user
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: name,
+  try {
+    // Register the user
+    console.log('Attempting to create user in Supabase...');
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/callback`,
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`,
-    },
-  });
-  
-  if (error) {
-    console.error('Signup error:', error.message);
-    return { 
-      error: 'Failed to create account' 
-    };
-  }
+    });
+    
+    if (error) {
+      console.error('Supabase signup error:', error);
+      return { 
+        error: error.message || 'Failed to create account' 
+      };
+    }
 
-  const requiresEmailVerification = !data.session;
-  
-  if (requiresEmailVerification) {
-    // User needs to verify their email
+    console.log('Supabase signup successful:', { 
+      user: data.user?.email, 
+      session: !!data.session,
+      needsConfirmation: !data.session 
+    });
+
+    // Check if email confirmation is required
+    const requiresEmailVerification = !data.session;
+    
+    if (!requiresEmailVerification && data.user) {
+      // User is auto-confirmed, create profile
+      console.log('User auto-confirmed, creating profile...');
+      
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          name: name,
+          email: email,
+          avatar_url: null,
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Don't fail the signup for profile creation errors
+      } else {
+        console.log('Profile created successfully');
+      }
+
+      // Create default user preferences
+      const { error: prefsError } = await supabase
+        .from('user_preferences')
+        .insert({
+          id: data.user.id,
+          theme: 'light',
+          email_notifications: true,
+          push_notifications: false,
+          reminder_notifications: true,
+          profile_visible: true,
+          progress_visible: true,
+          daily_goal_minutes: 30,
+          reminder_time: '09:00',
+          autoplay: true,
+        });
+
+      if (prefsError) {
+        console.error('User preferences creation error:', prefsError);
+      }
+
+      // Create initial progress record
+      const { error: progressError } = await supabase
+        .from('user_progress')
+        .insert({
+          user_id: data.user.id,
+          total_time_spent_minutes: 0,
+          current_streak_days: 0,
+          last_activity_date: new Date().toISOString().split('T')[0],
+        });
+
+      if (progressError) {
+        console.error('User progress creation error:', progressError);
+      }
+    }
+    
     return { 
       success: true,
-      needsEmailVerification: true
+      needsEmailVerification: requiresEmailVerification,
+      user: data.user
     };
-  } else {
-    // Auto-confirmed signup - user is already logged in
+    
+  } catch (err: any) {
+    console.error('Unexpected signup error:', err);
     return { 
-      success: true,
-      needsEmailVerification: false
+      error: 'An unexpected error occurred during signup' 
     };
   }
 }
@@ -136,7 +202,7 @@ export async function forgotPassword(formData: FormData): Promise<AuthResponse> 
   const supabase = await createClient();
   
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback?next=/auth/reset-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/callback?next=/auth/reset-password`,
   });
   
   if (error) {

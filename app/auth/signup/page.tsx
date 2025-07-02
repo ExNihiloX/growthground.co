@@ -63,8 +63,12 @@ export default function SignUpPage() {
     // Use React's useTransition to indicate pending state
     startTransition(async () => {
       try {
+        console.log('Starting signup process...');
+        
         // Call the server action
         const result = await signup(formData);
+
+        console.log('Signup result:', result);
 
         // Check for errors
         if (result.error) {
@@ -78,6 +82,7 @@ export default function SignUpPage() {
         } else {
           router.push('/dashboard');
         }
+        router.refresh(); // Refresh to ensure all server components update
       } catch (err: any) {
         console.error('Signup error:', err);
         setError('An unexpected error occurred. Please try again.');

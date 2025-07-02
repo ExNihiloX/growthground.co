@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 
 export default function DebugSupabasePage() {
   const [result, setResult] = useState<any>(null);
@@ -15,6 +15,7 @@ export default function DebugSupabasePage() {
     setResult(null);
 
     try {
+      const supabase = createClient();
       let data;
       let err;
 
@@ -24,14 +25,27 @@ export default function DebugSupabasePage() {
         data = response.data;
         err = response.error;
       } else if (testNum === 2) {
-        // Test 2: List all tables to see what's available
-        const response = await supabase.rpc('get_tables');
+        // Test 2: Check auth status
+        const response = await supabase.auth.getSession();
         data = response.data;
         err = response.error;
       } else if (testNum === 3) {
-        // Test 3: Just check if we can connect at all
-        const response = await supabase.auth.getSession();
-        data = response.data;
+        // Test 3: Test signup functionality
+        const testEmail = `test-${Date.now()}@example.com`;
+        const response = await supabase.auth.signUp({
+          email: testEmail,
+          password: 'testpassword123',
+          options: {
+            data: {
+              full_name: 'Test User'
+            }
+          }
+        });
+        data = { 
+          user: response.data.user?.email, 
+          session: !!response.data.session,
+          needsConfirmation: !response.data.session 
+        };
         err = response.error;
       }
 
@@ -63,19 +77,19 @@ export default function DebugSupabasePage() {
             onClick={() => setTestNumber(1)}
             className={`px-4 py-2 rounded ${testNumber === 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
           >
-            Test Profiles Table
+            Test Database Connection
           </button>
           <button 
             onClick={() => setTestNumber(2)}
             className={`px-4 py-2 rounded ${testNumber === 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
           >
-            List All Tables
+            Test Auth Session
           </button>
           <button 
             onClick={() => setTestNumber(3)}
             className={`px-4 py-2 rounded ${testNumber === 3 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
           >
-            Auth Session Test
+            Test Signup Flow
           </button>
           <button 
             onClick={() => runTest(testNumber)}
@@ -91,8 +105,8 @@ export default function DebugSupabasePage() {
           </div>
           <div>
             <span className="font-semibold">Test:</span> {
-              testNumber === 1 ? 'Profiles Table Query' : 
-              testNumber === 2 ? 'List All Tables' : 'Auth Session Check'
+              testNumber === 1 ? 'Database Connection' : 
+              testNumber === 2 ? 'Auth Session Check' : 'Signup Flow Test'
             }
           </div>
         </div>
