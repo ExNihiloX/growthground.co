@@ -7,23 +7,7 @@ import StatsOverview from '@/components/dashboard/stats-overview';
 import ModuleCard from '@/components/dashboard/module-card';
 import { Header } from '@/components/layout/header';
 import { useRouter } from 'next/navigation';
-
-export type Lesson = { id: string };
-export type Module = {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail_url: string | null;
-  estimated_time_minutes: number;
-  difficulty: string;
-  category_id: string | null;
-  instructor: string;
-  rating: number;
-  students_enrolled: number;
-  is_locked: boolean;
-  sort_order: number | null;
-  lessons: Lesson[];
-};
+import type { Module } from '@/lib/services/content-service';
 
 type CategoryMap = Record<string, string>;
 type ProgressMap = Record<string, number>;
