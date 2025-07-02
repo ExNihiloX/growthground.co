@@ -83,7 +83,7 @@ export default function DashboardClient({
                     <ModuleCard
                       key={module.id}
                       module={module}
-                      onStartModule={() => handleStartModule(module)}
+                      onStartModule={handleStartModule}
                       progress={userProgress[module.id] || 0}
                     />
                   ))}
@@ -100,7 +100,7 @@ export default function DashboardClient({
                     <ModuleCard
                       key={module.id}
                       module={module}
-                      onStartModule={() => handleStartModule(module)}
+                      onStartModule={handleStartModule}
                       progress={0}
                     />
                   ))}
@@ -116,7 +116,7 @@ export default function DashboardClient({
                   <ModuleCard
                     key={module.id}
                     module={module}
-                    onStartModule={() => handleStartModule(module)}
+                    onStartModule={handleStartModule}
                     progress={userProgress[module.id] || 0}
                   />
                 ))}
