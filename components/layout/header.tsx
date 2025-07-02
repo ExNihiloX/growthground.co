@@ -59,12 +59,18 @@ export function Header() {
 
       // Search through lessons within modules
       module.lessons.forEach(lesson => {
-        if (lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            lesson.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
+        // Use title, coreConcepts, or hook (if available) for searching lessons
+        const titleMatch = lesson.title.toLowerCase().includes(searchQuery.toLowerCase());
+        const conceptsMatch = lesson.coreConcepts?.some(concept => 
+          concept.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        const hookMatch = lesson.content?.hook?.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        if (titleMatch || conceptsMatch || hookMatch) {
           results.push({
             id: lesson.id,
             title: lesson.title,
-            description: lesson.description || '',
+            description: lesson.content?.hook || lesson.coreConcepts?.join(', ') || '',
             type: 'lesson',
             category: module.category,
             url: `/courses/${module.id}/lessons/${lesson.id}`,
