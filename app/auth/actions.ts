@@ -14,7 +14,11 @@ const loginSchema = z.object({
 const signupSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().min(2, 'Please enter your name'),
+}).refine((data) => data.password === data.confirmPassword, {
+  path: ['confirmPassword'],
+  message: 'Passwords do not match',
 });
 
 const forgotPasswordSchema = z.object({
@@ -23,6 +27,11 @@ const forgotPasswordSchema = z.object({
 
 const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
+  hash: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  path: ['confirmPassword'],
+  message: 'Passwords do not match',
 });
 
 
@@ -127,7 +136,9 @@ export async function resetPassword(formData: FormData) {
     return redirect(`/auth/reset-password?${errorQuery}`);
   }
 
-  const { password } = result.data;
+  const { password, hash } = result.data;
+
+  await supabase.auth.exchangeCodeForSession(hash);
 
   const { error } = await supabase.auth.updateUser({ password });
 
