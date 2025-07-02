@@ -12,56 +12,56 @@ export async function middleware(request: NextRequest) {
     res: response 
   })
 
-  // Get session with more detailed logging for debugging
-  const sessionStart = Date.now()
-  const sessionResult = await supabase.auth.getSession()
-  const sessionDuration = Date.now() - sessionStart
-  
-  const { 
-    data: { session },
-    error: sessionError
-  } = sessionResult
+  // Get session with error handling
+  try {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    const { pathname } = request.nextUrl
+    
+    if (sessionError) {
+      console.error('Middleware session error:', sessionError)
+    }
 
-  const { pathname } = request.nextUrl
-  
-  // Enhanced logging with more diagnostic information
-  console.log(`Middleware [${sessionDuration}ms] - Path: ${pathname}, Session: ${session ? `Valid (${session.user.email})` : 'None'}`)
-  
-  if (sessionError) {
-    console.error('Middleware session error:', sessionError)
+    // **Protect the dashboard and related routes**
+    if (!session && (
+      pathname.startsWith('/dashboard') ||
+      pathname.startsWith('/profile') ||
+      pathname.startsWith('/modules') ||
+      pathname.startsWith('/lessons') ||
+      pathname.startsWith('/settings') ||
+      pathname.startsWith('/progress') ||
+      pathname.startsWith('/achievements') ||
+      pathname.startsWith('/community') ||
+      pathname.startsWith('/help') ||
+      pathname.startsWith('/schedule')
+    )) {
+      console.log('Protected route, no session - redirecting to login')
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login'
+      // Store the original URL to redirect back after login
+      url.searchParams.set('redirectUrl', pathname)
+      return NextResponse.redirect(url)
+    }
+
+    // **Redirect authenticated users away from auth pages**
+    if (session && (
+      pathname.startsWith('/auth/login') || 
+      pathname.startsWith('/auth/signup') ||
+      pathname.startsWith('/auth/forgot-password') ||
+      pathname.startsWith('/auth/reset-password')
+    )) {
+      console.log('Auth page accessed with session - redirecting to dashboard')
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+
+    // For all other requests, return the response with the updated cookies
+    return response
+  } catch (error) {
+    console.error('Middleware error:', error)
+    return response
   }
-
-  // **Protect the dashboard and related routes**
-  if (!session && (
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/profile') ||
-    pathname.startsWith('/modules') ||
-    pathname.startsWith('/lessons') ||
-    pathname.startsWith('/settings')
-  )) {
-    console.log('Protected route, no session - redirecting to login')
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    // Store the original URL to redirect back after login
-    url.searchParams.set('redirectUrl', pathname)
-    return NextResponse.redirect(url)
-  }
-
-  // **Redirect authenticated users away from auth pages**
-  if (session && (
-    pathname.startsWith('/auth/login') || 
-    pathname.startsWith('/auth/signup') ||
-    pathname.startsWith('/auth/forgot-password') ||
-    pathname.startsWith('/auth/reset-password')
-  )) {
-    console.log('Auth page accessed with session - redirecting to dashboard')
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
-  }
-
-  // For all other requests, return the response with the updated cookies
-  return response
 }
 
 // Configure the middleware matcher to only run where needed
