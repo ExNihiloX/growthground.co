@@ -5,17 +5,15 @@ import { TrendingUp, Clock, Award, Target, Calendar, BookOpen } from 'lucide-rea
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { useAppStore } from '@/lib/store';
-import { masterCurriculum } from '@/lib/curriculum';
+import { useAppStore } from '@/lib/store-db';
 
 export function ProgressPage() {
-  const { userProgress, modules, setModules } = useAppStore();
+  const { userProgress, modules, fetchModules, fetchUserProgress } = useAppStore();
 
   useEffect(() => {
-    if (modules.length === 0) {
-      setModules(masterCurriculum);
-    }
-  }, [modules.length, setModules]);
+    fetchModules(true);
+    fetchUserProgress();
+  }, [fetchModules, fetchUserProgress]);
 
   const completedModules = Object.values(userProgress.moduleProgress).filter(
     progress => progress === 100

@@ -52,7 +52,6 @@ export async function middleware(request: NextRequest) {
     '/profile',
     '/modules',
     '/lessons',
-    '/settings',
     '/progress',
     '/achievements',
     '/community',

@@ -17,9 +17,10 @@ import { LessonQuiz } from './lesson-quiz';
 interface LessonViewerProps {
   module: Module;
   onBack: () => void;
+  initialLessonId?: string;
 }
 
-export function LessonViewer({ module, onBack }: LessonViewerProps) {
+export function LessonViewer({ module, onBack, initialLessonId }: LessonViewerProps) {
   const { 
     userProgress, 
     completeLesson 
@@ -31,7 +32,7 @@ export function LessonViewer({ module, onBack }: LessonViewerProps) {
   // Initialize with first lesson if none selected
   // Track active lesson ID
   const [activeLessonId, setActiveLessonId] = useState<string>(
-    module.lessons && module.lessons.length > 0 ? module.lessons[0]?.id || '' : ''
+    initialLessonId || (module.lessons && module.lessons.length > 0 ? module.lessons[0]?.id || '' : '')
   );
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   
@@ -69,7 +70,7 @@ export function LessonViewer({ module, onBack }: LessonViewerProps) {
     if (activeLesson && startTime) {
       const minutesSpent = Math.max(1, Math.floor(timeSpent / 60));
       if (completeLesson && activeLessonId) {
-        completeLesson(activeLessonId, String(minutesSpent));
+        completeLesson(activeLessonId, module.id);
       }
     }
   };
@@ -88,10 +89,13 @@ export function LessonViewer({ module, onBack }: LessonViewerProps) {
 
   useEffect(() => {
     if (module.lessons && module.lessons.length > 0) {
-      setActiveLessonId(module.lessons[0].id);
-      setActiveLesson(module.lessons[0]);
+      const initial = initialLessonId
+        ? module.lessons.find(l => l.id === initialLessonId) || module.lessons[0]
+        : module.lessons[0];
+      setActiveLessonId(initial.id);
+      setActiveLesson(initial);
     }
-  }, [module]);
+  }, [module, initialLessonId]);
 
   const goToPreviousLesson = () => {
     if (!isFirstLesson && module.lessons && currentLessonIndex > 0) {
