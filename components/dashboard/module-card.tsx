@@ -12,21 +12,23 @@ import { Module } from '@/app/dashboard/DashboardClient';
 interface ModuleCardProps {
   module: Module;
   onStartModule: () => void;
-  completedLessons: Set<string>;
+  progress?: number;
+  completedLessons?: Set<string>;
 }
 
-export default function ModuleCard({ module, onStartModule, completedLessons }: ModuleCardProps) {
+export default function ModuleCard({ module, onStartModule, progress: progressProp, completedLessons }: ModuleCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   
   // Calculate progress based on completed lessons
   const totalLessons = module.lessons?.length || 0;
-  const completedInThisModule = module.lessons?.filter(lesson => 
-    completedLessons.has(lesson.id)
+  const completedInThisModule = module.lessons?.filter(lesson =>
+    completedLessons?.has(lesson.id)
   ).length || 0;
-  
-  const progress = totalLessons > 0 ? Math.round((completedInThisModule / totalLessons) * 100) : 0;
-  const isCompleted = totalLessons > 0 && completedInThisModule === totalLessons;
-  const isStarted = completedInThisModule > 0;
+
+  const computedProgress = totalLessons > 0 ? Math.round((completedInThisModule / totalLessons) * 100) : 0;
+  const progress = progressProp !== undefined ? progressProp : computedProgress;
+  const isCompleted = progress === 100;
+  const isStarted = progress > 0;
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {

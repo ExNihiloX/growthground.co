@@ -26,7 +26,7 @@ export default async function AchievementsPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       <div className="flex flex-1">
-        <Sidebar currentPage="achievements" setCurrentPage={() => {}} />
+        <Sidebar currentPage="achievements" />
         <main className="flex-1 lg:ml-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <AchievementsPageComponent />

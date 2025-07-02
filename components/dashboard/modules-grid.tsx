@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { ModuleCard } from './module-card';
+import ModuleCard from './module-card';
 import { useAppStore } from '@/lib/store-db';
 import { Module } from '@/lib/services/content-service';
 

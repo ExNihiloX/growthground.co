@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'; // Use the server client
+import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import DashboardClient from './DashboardClient';
 import { Metadata } from 'next';
@@ -8,84 +8,73 @@ export const metadata: Metadata = {
   description: 'Your learning progress and next steps',
 };
 
-// Map for category names
-const CATEGORY_NAMES: Record<string, string> = {
-  'fundamentals': 'Fundamentals',
-  'design': 'Product Design',
-  'development': 'Development',
-  'business': 'Business & Strategy',
-  'operations': 'Operations',
-};
-
 export default async function DashboardPage() {
-  // Create the Supabase client (now awaits cookies() internally)
   const supabase = await createClient();
 
-  // Check for active session
   const { data: { session } } = await supabase.auth.getSession();
-
   if (!session) {
     return redirect('/auth/login');
   }
-  
-  // Get user profile
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', session.user.id)
-    .single();
 
-  // Fetch categories for mapping
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, name')
-    .order('name');
-    
-  // Build a map of category IDs to names
-  const categoryMap: Record<string, string> = {};
-  if (categories) {
-    categories.forEach((cat: { id: string; name: string }) => {
-      categoryMap[cat.id] = cat.name;
-    });
-  } else {
-    // Fallback to hardcoded categories if DB fetch fails
-    Object.entries(CATEGORY_NAMES).forEach(([id, name]) => {
-      categoryMap[id] = name;
-    });
-  }
+  // --- Start of New Data Fetching & Logic ---
 
-  // Fetch all modules, correctly ordered by 'sort_order'
-  const { data: modules, error: modulesError } = await supabase
-    .from('modules')
-    .select(`
-      *,
-      lessons (id, title, description, duration_minutes, sort_order, core_concepts)
-    `)
-    .order('sort_order', { ascending: true })
-    .order('sort_order', { foreignTable: 'lessons', ascending: true });
+  // 1. Fetch all necessary data in parallel
+  const [
+    profileRes,
+    categoriesRes,
+    modulesRes,
+    progressRes
+  ] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+    supabase.from('categories').select('id, name'),
+    supabase.from('modules').select(`*, lessons (id)`).order('sort_order', { ascending: true }),
+    supabase.from('user_module_progress').select('*').eq('user_id', session.user.id)
+  ]);
 
-  // Fetch all of the user's completed lessons
-  const { data: completedLessons, error: progressError } = await supabase
-    .from('user_lesson_completions')
-    .select('lesson_id')
-    .eq('user_id', session.user.id);
-
-  if (modulesError || progressError) {
-    console.error('Error fetching dashboard data:', modulesError || progressError);
+  // Handle potential errors
+  if (profileRes.error || categoriesRes.error || modulesRes.error || progressRes.error) {
+    console.error('Error fetching dashboard data:',
+      profileRes.error || categoriesRes.error || modulesRes.error || progressRes.error
+    );
     return <div className="p-8 text-red-500">Error loading data. Please try again later.</div>;
   }
 
-  // Create a Set for quick lookup of completed lesson IDs
-  const completedLessonIds = new Set(completedLessons?.map((l: { lesson_id: string }) => l.lesson_id) || [] as string[]);
+  const profile = profileRes.data;
+  const allModules = modulesRes.data || [];
+  const userProgress = progressRes.data || [];
 
-  // Pass all the fetched data as props to the Client Component
+  // 2. Create helper maps for easy lookup
+  const categoryMap: Record<string, string> = Object.fromEntries(
+    (categoriesRes.data || []).map(cat => [cat.id, cat.name])
+  );
+  const progressMap: Record<string, number> = Object.fromEntries(
+    userProgress.map((p: any) => [p.module_id, p.progress_percentage])
+  );
+
+  // 3. Filter modules into our new categories
+  const activeModules = allModules.filter(
+    (m: any) => (progressMap[m.id] > 0) && (progressMap[m.id] < 100)
+  );
+
+  const completedModules = allModules.filter((m: any) => progressMap[m.id] === 100);
+  const completedModuleIds = new Set(completedModules.map((m: any) => m.id));
+
+  const nextModules = allModules
+    .filter((m: any) => !progressMap[m.id] && !completedModuleIds.has(m.id))
+    .slice(0, 2);
+
+  // --- End of New Data Fetching & Logic ---
+
+  // We still pass all modules for the "Explore" section
   return (
-    <DashboardClient 
-      modules={modules || []} 
-      completedLessonIds={completedLessonIds} 
-      userId={session.user.id}
+    <DashboardClient
       profile={profile || {}}
+      activeModules={activeModules}
+      nextModules={nextModules}
+      allModules={allModules}
       categories={categoryMap}
+      userProgress={progressMap}
+      userId={session.user.id}
     />
   );
 }
