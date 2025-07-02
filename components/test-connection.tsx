@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Loader2, User } from 'lucide-react';
+
+const supabase = createClient();
 
 export function TestConnection() {
   const { user, profile, isLoading: authLoading } = useAuth();

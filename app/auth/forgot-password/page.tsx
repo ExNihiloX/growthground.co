@@ -1,6 +1,3 @@
-'use client';
-
-import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { forgotPassword } from '../actions';
 import { Button } from '@/components/ui/button';
@@ -8,44 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
-export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isPending, startTransition] = useTransition();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    
-    if (!email.trim()) {
-      setError('Email is required');
-      return;
-    }
-    
-    // Create form data to pass to server action
-    const formData = new FormData();
-    formData.append('email', email);
-    
-    // Use React's useTransition to indicate pending state
-    startTransition(async () => {
-      try {
-        // Call the server action
-        const result = await forgotPassword(formData);
-        
-        if (result.error) {
-          setError(result.error);
-          return;
-        }
-        
-        setIsSubmitted(true);
-      } catch (err: any) {
-        setError('Failed to send password reset email. Please try again.');
-      }
-    });
-  };
+export default function ForgotPasswordPage({
+  searchParams,
+}: {
+  searchParams: { error?: string; message?: string };
+}) {
+  const isSubmitted = !!searchParams.message;
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
@@ -58,42 +25,28 @@ export default function ForgotPasswordPage() {
         </CardHeader>
         <CardContent>
           {!isSubmitted ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
+            <form action={forgotPassword} className="space-y-4">
+              {searchParams.error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>{searchParams.error}</AlertDescription>
                 </Alert>
               )}
-              
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  disabled={isPending}
-                />
+                <Input id="email" name="email" type="email" placeholder="you@example.com" required />
               </div>
-              
-              <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  'Send Reset Link'
-                )}
+
+              <Button type="submit" className="w-full">
+                Send Reset Link
               </Button>
             </form>
           ) : (
             <div className="flex flex-col items-center space-y-4 py-6">
               <CheckCircle className="h-12 w-12 text-green-500" />
               <p className="text-center">
-                If an account exists for {email}, we've sent a password reset link to that address.
+                If an account exists for {searchParams.email}, we've sent a password reset link to that address.
               </p>
               <p className="text-center text-sm text-muted-foreground">
                 Please check your email (including spam folder) for further instructions.
