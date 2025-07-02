@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { Module } from '@/app/dashboard/DashboardClient';
+import type { Module } from '@/lib/services/content-service';
 
 interface ModuleCardProps {
   module: Module;
-  onStartModule: () => void;
+  onStartModule: (module: Module) => void;
   progress?: number;
   completedLessons?: Set<string>;
 }
@@ -59,11 +59,11 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => !module.is_locked && onStartModule()}
+      onClick={() => !module.is_locked && onStartModule(module)}
     >
       <div className="relative">
         <img
-          src={module.thumbnail_url || '/images/module-placeholder.jpg'}
+          src={module.thumbnail || '/images/module-placeholder.jpg'}
           alt={module.title}
           className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
         />
@@ -76,7 +76,7 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
               {module.difficulty}
             </Badge>
             <Badge className="bg-blue-100 text-blue-800">
-              {module.category_id || 'General'}
+              {module.category || 'General'}
             </Badge>
           </div>
           {isCompleted && (
@@ -129,7 +129,7 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>{Math.round(module.estimated_time_minutes / 60)}h {module.estimated_time_minutes % 60}m</span>
+            <span>{Math.round(module.estimated_time / 60)}h {module.estimated_time % 60}m</span>
           </div>
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
@@ -182,7 +182,7 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
           disabled={module.is_locked}
           onClick={(e) => {
             e.stopPropagation();
-            if (!module.is_locked) onStartModule();
+            if (!module.is_locked) onStartModule(module);
           }}
         >
           {module.is_locked ? (

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import DashboardClient from './DashboardClient';
+import { mapDbModule } from '@/lib/mappers';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -40,7 +41,7 @@ export default async function DashboardPage() {
   }
 
   const profile = profileRes.data;
-  const allModules = modulesRes.data || [];
+  const allModules = (modulesRes.data || []).map(mapDbModule);
   const userProgress = progressRes.data || [];
 
   // 2. Create helper maps for easy lookup

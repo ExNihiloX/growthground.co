@@ -9,6 +9,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Lesson, UserProgress, User, Achievement, CommunityPost, ScheduleEvent, SearchResult } from './types';
 import { Module } from './services/content-service';
+import { mapDbModule, mapDbLesson } from './mappers';
 
 interface LessonCompletion {
   id: string;
@@ -107,27 +108,29 @@ export const useAppStore = create<AppState>()(
             .order('sort_order');
           
           const { data: modules, error } = await query;
-          
+
           if (error) throw error;
-          
-          // If lessons should be included, fetch them for each module
+
+          let mapped = (modules || []).map(mapDbModule);
+
           if (includeLessons && modules) {
-            for (const module of modules) {
+            for (let i = 0; i < modules.length; i++) {
+              const m = modules[i];
               const { data: lessonData, error: lessonError } = await supabase
                 .from('lessons')
                 .select('*')
-                .eq('module_id', module.id)
+                .eq('module_id', m.id)
                 .order('sort_order');
-                
+
               if (!lessonError && lessonData) {
-                module.lessons = lessonData;
+                mapped[i].lessons = lessonData.map(mapDbLesson);
               }
             }
           }
-          
-          set({ 
-            modules: modules || [],
-            modulesLoading: false 
+
+          set({
+            modules: mapped,
+            modulesLoading: false
           });
         } catch (error) {
           console.error('Error fetching modules:', error);
@@ -162,26 +165,26 @@ export const useAppStore = create<AppState>()(
             .select('*')
             .eq('module_id', moduleId)
             .order('sort_order');
-          
+
           if (lessonsError) throw lessonsError;
-          
-          // Add lessons to the module
-          module.lessons = lessons || [];
+
+          const mapped = mapDbModule(module);
+          mapped.lessons = (lessons || []).map(mapDbLesson);
           
           // Update the module in the modules array
           set((state) => {
             const updatedModules = [...state.modules];
             const moduleIndex = updatedModules.findIndex(m => m.id === moduleId);
-            
+
             if (moduleIndex >= 0) {
-              updatedModules[moduleIndex] = module;
+              updatedModules[moduleIndex] = mapped;
             } else {
-              updatedModules.push(module);
+              updatedModules.push(mapped);
             }
             
             return {
               modules: updatedModules,
-              currentModule: module,
+              currentModule: mapped,
               modulesLoading: false
             };
           });
