@@ -11,7 +11,7 @@ import { Module } from '@/app/dashboard/DashboardClient';
 
 interface ModuleCardProps {
   module: Module;
-  onStartModule: () => void;
+  onStartModule: (module: Module) => void;
   progress?: number;
   completedLessons?: Set<string>;
 }
@@ -59,7 +59,7 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => !module.is_locked && onStartModule()}
+      onClick={() => !module.is_locked && onStartModule(module)}
     >
       <div className="relative">
         <img
@@ -182,7 +182,7 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
           disabled={module.is_locked}
           onClick={(e) => {
             e.stopPropagation();
-            if (!module.is_locked) onStartModule();
+            if (!module.is_locked) onStartModule(module);
           }}
         >
           {module.is_locked ? (
