@@ -22,7 +22,6 @@ This project is a Next.js 15 application that uses Supabase for authentication a
 
 ## Scripts
 
-- `npm run migrate-curriculum` – populate the database with the curriculum content.
 
 ## Environment Variables
 

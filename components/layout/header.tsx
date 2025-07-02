@@ -8,10 +8,9 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useAppStore } from '@/lib/store';
+import { useAppStore } from '@/lib/store-db';
 import { useSession } from '@/components/providers/session-provider';
 import { logout } from '@/app/auth/actions';
-import { masterCurriculum } from '@/lib/curriculum';
 import { SearchResult } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -20,16 +19,24 @@ import { useRouter } from 'next/navigation';
 export function Header() {
   const { user } = useSession();
   const router = useRouter();
-  const { 
-    sidebarOpen, 
-    setSidebarOpen, 
-    searchQuery, 
-    setSearchQuery, 
-    searchResults, 
-    setSearchResults 
+  const {
+    sidebarOpen,
+    setSidebarOpen,
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    setSearchResults,
+    modules,
+    fetchModules
   } = useAppStore();
   
   const [showSearchResults, setShowSearchResults] = useState(false);
+
+  useEffect(() => {
+    if (modules.length === 0) {
+      fetchModules(true);
+    }
+  }, [modules.length, fetchModules]);
 
   // Search functionality
   useEffect(() => {
@@ -41,8 +48,8 @@ export function Header() {
 
     const results: SearchResult[] = [];
     
-    // Search through modules
-    masterCurriculum.forEach(module => {
+    // Search through modules from the database
+    modules.forEach(module => {
       if (module.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           module.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
           module.category.toLowerCase().includes(searchQuery.toLowerCase())) {
@@ -53,7 +60,7 @@ export function Header() {
           type: 'module',
           category: module.category,
           thumbnail: module.thumbnail,
-          url: `/courses/${module.id}`,
+          url: `/modules/${module.id}`,
         });
       }
 
@@ -73,7 +80,7 @@ export function Header() {
             description: lesson.content?.hook || lesson.coreConcepts?.join(', ') || '',
             type: 'lesson',
             category: module.category,
-            url: `/courses/${module.id}/lessons/${lesson.id}`,
+            url: `/modules/${module.id}/lessons/${lesson.id}`,
           });
         }
       });
@@ -81,7 +88,7 @@ export function Header() {
 
     setSearchResults(results.slice(0, 8)); // Limit to 8 results
     setShowSearchResults(true);
-  }, [searchQuery, setSearchResults]);
+  }, [searchQuery, setSearchResults, modules]);
 
   const handleSearchFocus = () => {
     if (searchQuery.trim() !== '') {

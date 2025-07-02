@@ -3,34 +3,37 @@ import { redirect } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Sidebar } from '@/components/layout/sidebar';
-import { ModulesPageClient } from '@/components/pages/modules-page-client';
 import { Metadata } from 'next';
+import ModuleLessonClient from '../ModuleLessonClient';
+import { contentService } from '@/lib/services/content-service';
 
 export const metadata: Metadata = {
-  title: 'Modules | GrowthGround',
-  description: 'Browse all available learning modules',
+  title: 'Lesson | GrowthGround',
 };
 
-export default async function ModulesPage() {
-  // Create the Supabase client
-  const supabase = await createClient();
-  
-  // Check for active session
-  const { data: { session } } = await supabase.auth.getSession();
+interface PageProps {
+  params: { moduleId: string; lessonId: string };
+}
 
+export default async function LessonPage({ params }: PageProps) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
     return redirect('/auth/login');
   }
-  
+
+  const module = await contentService.getModule(params.moduleId);
+  if (!module) {
+    return <div className="p-8">Module not found.</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       <div className="flex flex-1">
         <Sidebar currentPage="modules" />
         <main className="flex-1 lg:ml-0">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <ModulesPageClient />
-          </div>
+          <ModuleLessonClient module={module} initialLessonId={params.lessonId} />
         </main>
       </div>
       <Footer />

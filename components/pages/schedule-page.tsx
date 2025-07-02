@@ -5,7 +5,7 @@ import { Calendar, Clock, Plus, Bell, CheckCircle, AlertCircle } from 'lucide-re
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useAppStore } from '@/lib/store';
+import { useAppStore } from '@/lib/store-db';
 import { mockScheduleEvents } from '@/lib/data';
 import { ScheduleEvent } from '@/lib/types';
 import { cn } from '@/lib/utils';

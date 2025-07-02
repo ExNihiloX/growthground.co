@@ -27,7 +27,7 @@ const navigationItems = [
   { id: 'achievements', title: 'Achievements', icon: Award, href: '/achievements' },
   { id: 'schedule', title: 'Schedule', icon: Calendar, href: '/schedule' },
   { id: 'community', title: 'Community', icon: Users, href: '/community' },
-  { id: 'settings', title: 'Settings', icon: Settings, href: '/settings' },
+  { id: 'profile', title: 'Profile', icon: Settings, href: '/profile' },
   { id: 'help', title: 'Help', icon: HelpCircle, href: '/help' },
 ];
 

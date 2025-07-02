@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAppStore } from '@/lib/store';
+import { useAppStore } from '@/lib/store-db';
 import { mockCommunityPosts } from '@/lib/data';
 import { CommunityPost } from '@/lib/types';
 

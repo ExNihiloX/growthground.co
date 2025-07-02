@@ -10,7 +10,7 @@ export function Footer() {
 
   const footerLinks = {
     platform: [
-      { title: 'Browse Courses', href: '/courses' },
+      { title: 'Browse Modules', href: '/modules' },
       { title: 'Learning Paths', href: '/paths' },
       { title: 'Instructors', href: '/instructors' },
       { title: 'Pricing', href: '/pricing' },
