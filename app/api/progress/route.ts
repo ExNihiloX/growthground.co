@@ -6,14 +6,13 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { contentService } from '@/lib/services/content-service';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { Database } from '@/lib/database.types';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   try {
     // Authentication required for progress data
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session || !session.user) {
@@ -56,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Authentication check
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session || !session.user) {
