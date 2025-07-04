@@ -99,7 +99,11 @@ export const useAppStore = create<AppState>()(
           
           // Use the client-side Supabase client directly
           const { createClient } = await import('@/lib/supabase/client');
+          const { prefetchCategories } = await import('@/lib/utils/category-utils');
           const supabase = createClient();
+          
+          // Prefetch all categories to improve performance
+          await prefetchCategories();
           
           // Fetch modules
           let query = supabase
@@ -111,7 +115,13 @@ export const useAppStore = create<AppState>()(
 
           if (error) throw error;
 
-          let mapped = (modules || []).map(mapDbModule);
+          // Map modules asynchronously
+          const mappingPromises = (modules || []).map(async (module) => {
+            return await mapDbModule(module);
+          });
+          
+          // Wait for all mappings to complete
+          let mapped = await Promise.all(mappingPromises);
 
           if (includeLessons && modules) {
             for (let i = 0; i < modules.length; i++) {
@@ -147,7 +157,11 @@ export const useAppStore = create<AppState>()(
           
           // Use the client-side Supabase client directly
           const { createClient } = await import('@/lib/supabase/client');
+          const { prefetchCategories } = await import('@/lib/utils/category-utils');
           const supabase = createClient();
+          
+          // Prefetch categories to improve performance
+          await prefetchCategories();
           
           // Fetch the specific module
           const { data: module, error } = await supabase
@@ -168,7 +182,8 @@ export const useAppStore = create<AppState>()(
 
           if (lessonsError) throw lessonsError;
 
-          const mapped = mapDbModule(module);
+          // Map module data using the async mapper
+          const mapped = await mapDbModule(module);
           mapped.lessons = (lessons || []).map(mapDbLesson);
           
           // Update the module in the modules array

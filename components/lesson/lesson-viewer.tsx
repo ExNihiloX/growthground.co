@@ -64,7 +64,15 @@ export function LessonViewer({ module, onBack, initialLessonId }: LessonViewerPr
   const currentLessonIndex = module.lessons?.findIndex(l => l.id === activeLessonId) || 0;
   const isLastLesson = module.lessons ? currentLessonIndex === module.lessons.length - 1 : true;
   const isFirstLesson = currentLessonIndex === 0;
-  const isCompleted = userProgress.completedLessons.has(activeLessonId);
+  // Safely check if a lesson is completed, handling both Set and Array/Object types
+  const isCompleted = userProgress.completedLessons && (
+    // If it's a proper Set with a has method
+    (typeof userProgress.completedLessons.has === 'function' && userProgress.completedLessons.has(activeLessonId)) ||
+    // If it's an array
+    (Array.isArray(userProgress.completedLessons) && userProgress.completedLessons.includes(activeLessonId)) ||
+    // If it's a plain object (as might happen with serialization issues)
+    (typeof userProgress.completedLessons === 'object' && activeLessonId in userProgress.completedLessons)
+  );
 
   const handleLessonComplete = () => {
     if (activeLesson && startTime) {
@@ -194,7 +202,15 @@ export function LessonViewer({ module, onBack, initialLessonId }: LessonViewerPr
               <div className="space-y-2">
                 {module.lessons?.map((lesson, index) => {
                   const isActive = lesson.id === activeLessonId;
-                  const isLessonComplete = userProgress.completedLessons.has(lesson.id);
+                  // Safely check if a lesson is completed, handling both Set and Array/Object types
+                  const isLessonComplete = userProgress.completedLessons && (
+                    // If it's a proper Set with a has method
+                    (typeof userProgress.completedLessons.has === 'function' && userProgress.completedLessons.has(lesson.id)) ||
+                    // If it's an array
+                    (Array.isArray(userProgress.completedLessons) && userProgress.completedLessons.includes(lesson.id)) ||
+                    // If it's a plain object (as might happen with serialization issues)
+                    (typeof userProgress.completedLessons === 'object' && lesson.id in userProgress.completedLessons)
+                  );
                   
                   return (
                     <button

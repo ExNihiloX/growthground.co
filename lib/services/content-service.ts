@@ -5,7 +5,7 @@
  * Acts as a layer between the UI components and the Supabase database.
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from '@/lib/supabase/client';
 import { Database } from '../database.types';
 
 // Types for modules and lessons
@@ -14,7 +14,8 @@ export interface Module {
   title: string;
   description: string;
   difficulty: string;
-  category: string;
+  category: string; // Display name of the category
+  categoryId: string | null; // ID reference to categories table
   instructor: string;
   thumbnail: string;
   estimated_time: number;
@@ -66,11 +67,8 @@ class ContentService {
   private supabase;
   
   constructor() {
-    // Initialize the Supabase client with public anon key (restricted access)
-    this.supabase = createClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // Initialize with the authenticated Supabase client that uses cookies
+    this.supabase = createSupabaseClient();
   }
   
   /**

@@ -41,7 +41,11 @@ export default async function DashboardPage() {
   }
 
   const profile = profileRes.data;
-  const allModules = (modulesRes.data || []).map(mapDbModule);
+  
+  // Handle async mapDbModule function by using Promise.all to wait for all modules to be mapped
+  const modulesPromises = (modulesRes.data || []).map(module => mapDbModule(module));
+  const allModules = await Promise.all(modulesPromises);
+  
   const userProgress = progressRes.data || [];
 
   // 2. Create helper maps for easy lookup

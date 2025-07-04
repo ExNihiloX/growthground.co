@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Create a response object that we'll modify and return
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -39,19 +40,24 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Use the more secure getUser() which validates the session on the server
+  // Use getSession() instead of getUser() to avoid network requests in middleware
+  // This provides better reliability in the middleware environment
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
 
   const { pathname } = request.nextUrl
+
+  // Helper function to check if a path matches any of our module routes
+  // Examples: /modules/module-1, /modules/abc123, /modules/module-1/lessons/lesson-1
+  const isModuleRoute = (path: string) => {
+    return /^\/modules\/[\w-]+(\/.*)?$/.test(path)
+  }
 
   // Define protected routes
   const protectedRoutes = [
     '/dashboard',
     '/profile',
-    '/modules',
-    '/lessons',
     '/progress',
     '/achievements',
     '/community',
@@ -59,15 +65,18 @@ export async function middleware(request: NextRequest) {
     '/schedule'
   ];
 
-  const isProtectedRoute = protectedRoutes.some(path => pathname.startsWith(path));
+  // Check if the route is protected - either explicit route or a module route
+  const isProtectedRoute = protectedRoutes.some(path => pathname.startsWith(path)) || isModuleRoute(pathname);
+
+  console.log(`Path: ${pathname}, Protected: ${isProtectedRoute}, Session: ${!!session}`);
 
   // If the user is not logged in and trying to access a protected route, redirect them
-  if (!user && isProtectedRoute) {
+  if (!session && isProtectedRoute) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
   // If the user is logged in and trying to access an auth page (except callback), redirect them
-  if (user && pathname.startsWith('/auth')) {
+  if (session && pathname.startsWith('/auth')) {
     if (pathname !== '/auth/callback') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }

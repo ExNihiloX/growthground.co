@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { getCategoryColorClasses } from '@/lib/utils/category-utils';
 import type { Module } from '@/lib/services/content-service';
 
 interface ModuleCardProps {
@@ -39,16 +40,7 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'Fundamentals': return 'bg-blue-100 text-blue-800';
-      case 'Design': return 'bg-purple-100 text-purple-800';
-      case 'Development': return 'bg-orange-100 text-orange-800';
-      case 'Business': return 'bg-green-100 text-green-800';
-      case 'Operations': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  // Removed the duplicate getCategoryColor function - now using the imported utility
 
   return (
     <Card 
@@ -75,7 +67,7 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
             <Badge className={getDifficultyColor(module.difficulty)}>
               {module.difficulty}
             </Badge>
-            <Badge className="bg-blue-100 text-blue-800">
+            <Badge className={getCategoryColorClasses(module.category)}>
               {module.category || 'General'}
             </Badge>
           </div>
