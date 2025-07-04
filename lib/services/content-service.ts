@@ -5,150 +5,159 @@
  * Acts as a layer between the UI components and the Supabase database.
  */
 
-import { createClient as createSupabaseClient } from '@/lib/supabase/client';
-import { Database } from '../database.types';
+import { createClient } from '@/lib/supabase/server';
+import { Database } from '@/lib/database.types';
 
-// Types for modules and lessons
+// Type definitions that match component expectations (from lib/types.ts)
 export interface Module {
   id: string;
   title: string;
   description: string;
-  difficulty: string;
-  category: string; // Display name of the category
-  categoryId: string | null; // ID reference to categories table
-  instructor: string;
   thumbnail: string;
-  estimated_time: number;
-  learning_outcomes: string[];
-  prerequisites: string[] | null;
-  is_locked: boolean;
-  rating: number;
-  students_enrolled: number | null;
-  order_index: number;
-  lessons?: Lesson[];
+  lessons: Lesson[];
+  progress: number; // 0-100
+  estimatedTime: number; // in minutes
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  category: string;
+  isLocked: boolean;
+  instructor?: string;
+  rating?: number;
+  studentsEnrolled?: number;
+  learning_outcomes?: string[];
+  prerequisites?: string[] | null;
 }
 
 export interface Lesson {
   id: string;
-  module_id: string;
   title: string;
-  description: string | null;
-  duration: number;
-  core_concepts: string[];
-  analogy: string | null;
-  order_index: number;
-  content: {
-    hook?: string;
-    coreExplanation?: string[];
-    strategicInsights?: string[];
-    talkingToDevs?: string[];
-    interactiveElementBrief?: string;
-  } | null;
-}
-
-export interface UserLessonProgress {
-  id?: string;
-  user_id: string;
-  lesson_id: string;
-  module_id: string;
+  description: string;
+  duration: number; // in minutes
+  content: string;
+  videoUrl?: string;
+  order: number;
   completed: boolean;
-  time_spent: number;
-  completed_at?: string | null;
+  module_id?: string;
+  core_concepts?: string[];
+  analogy?: string | null;
 }
 
-export interface ModuleProgress {
-  module_id: string;
-  total_lessons: number;
-  completed_lessons: number;
-  progress_percentage: number;
+export interface Category {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string | null;
+  created_at: string;
+  updated_at: string;
+  sort_order: number | null;
 }
 
 class ContentService {
-  private supabase;
-  
-  constructor() {
-    // Initialize with the authenticated Supabase client that uses cookies
-    this.supabase = createSupabaseClient();
+  // Helper method to map database module to component module
+  private mapDbModuleToComponent(dbModule: Database['public']['Tables']['modules']['Row'], lessons: Database['public']['Tables']['lessons']['Row'][], progress: number = 0): Module {
+    return {
+      id: dbModule.id,
+      title: dbModule.title || 'Untitled Module',
+      description: dbModule.description || 'No description available',
+      thumbnail: dbModule.thumbnail_url || '/images/module-placeholder.jpg',
+      lessons: lessons.map((lesson) => this.mapDbLessonToComponent(lesson)),
+      progress,
+      estimatedTime: dbModule.estimated_time_minutes || 0,
+      difficulty: (dbModule.difficulty as 'Beginner' | 'Intermediate' | 'Advanced') || 'Beginner',
+      category: 'General', // Will be resolved by category lookup
+      isLocked: Boolean(dbModule.is_locked),
+      instructor: dbModule.instructor || 'GrowthGround Staff',
+      rating: typeof dbModule.rating === 'number' ? dbModule.rating : 4.5,
+      studentsEnrolled: typeof dbModule.students_enrolled === 'number' ? dbModule.students_enrolled : 0,
+      learning_outcomes: Array.isArray(dbModule.learning_outcomes) ? dbModule.learning_outcomes : [],
+      prerequisites: Array.isArray(dbModule.prerequisites) ? dbModule.prerequisites : null,
+    };
   }
-  
-  /**
-   * Get all modules (optionally with lessons)
-   */
-  async getModules(includeLessons: boolean = false): Promise<Module[]> {
-    let query = this.supabase
+
+  // Helper method to map database lesson to component lesson
+  private mapDbLessonToComponent(dbLesson: Database['public']['Tables']['lessons']['Row'], completed: boolean = false): Lesson {
+    return {
+      id: dbLesson.id,
+      title: dbLesson.title,
+      description: dbLesson.description || '',
+      duration: dbLesson.duration_minutes || 0,
+      content: typeof dbLesson.content === 'string' ? dbLesson.content : JSON.stringify(dbLesson.content || {}),
+      order: dbLesson.sort_order || 0,
+      completed,
+      module_id: dbLesson.module_id,
+      core_concepts: dbLesson.core_concepts || [],
+      analogy: dbLesson.analogy,
+    };
+  }
+
+  async getModules(): Promise<Module[]> {
+    const supabase = createClient();
+    
+    const { data: modules, error } = await supabase
       .from('modules')
       .select('*')
-      .order('order_index');
-    
-    const { data, error } = await query;
+      .order('sort_order', { ascending: true });
     
     if (error) {
       console.error('Error fetching modules:', error);
-      return [];
+      throw new Error(`Failed to fetch modules: ${error.message}`);
     }
-    
-    // Convert to Module type and optionally fetch lessons
-    const modules = data as Module[];
-    
-    if (includeLessons) {
-      // Fetch lessons for each module
-      for (const module of modules) {
-        const { data: lessonData, error: lessonError } = await this.supabase
+
+    if (!modules) return [];
+
+    // Get lessons for all modules
+    const modulesWithLessons = await Promise.all(
+      modules.map(async (module: Database['public']['Tables']['modules']['Row']) => {
+        const { data: lessons } = await supabase
           .from('lessons')
           .select('*')
           .eq('module_id', module.id)
-          .order('order_index');
-          
-        if (!lessonError && lessonData) {
-          module.lessons = lessonData as Lesson[];
-        }
-      }
-    }
-    
-    return modules;
+          .order('sort_order', { ascending: true });
+
+        return this.mapDbModuleToComponent(module, lessons || []);
+      })
+    );
+
+    return modulesWithLessons;
   }
-  
-  /**
-   * Get a single module by ID with its lessons
-   */
+
   async getModule(moduleId: string): Promise<Module | null> {
-    const { data, error } = await this.supabase
+    const supabase = createClient();
+    
+    // Get the module
+    const { data: module, error: moduleError } = await supabase
       .from('modules')
       .select('*')
       .eq('id', moduleId)
       .single();
       
-    if (error || !data) {
-      console.error('Error fetching module:', error);
+    if (moduleError || !module) {
+      console.error('Error fetching module:', moduleError);
       return null;
     }
     
-    const module = data as Module;
-    
-    // Fetch lessons for the module
-    const { data: lessonData, error: lessonError } = await this.supabase
+    // Get the lessons for this module
+    const { data: lessons, error: lessonsError } = await supabase
       .from('lessons')
       .select('*')
       .eq('module_id', moduleId)
-      .order('order_index');
-      
-    if (!lessonError && lessonData) {
-      module.lessons = lessonData as Lesson[];
-    } else {
-      module.lessons = [];
+      .order('sort_order', { ascending: true });
+
+    if (lessonsError) {
+      console.error('Error fetching lessons:', lessonsError);
+      return this.mapDbModuleToComponent(module, []);
     }
-    
-    return module;
+
+    return this.mapDbModuleToComponent(module, lessons || []);
   }
-  
-  /**
-   * Get a single lesson by ID
-   */
-  async getLesson(lessonId: string): Promise<Lesson | null> {
-    const { data, error } = await this.supabase
+
+  async getLesson(lessonId: string, moduleId: string): Promise<Lesson | null> {
+    const supabase = createClient();
+    
+    const { data, error } = await supabase
       .from('lessons')
       .select('*')
       .eq('id', lessonId)
+      .eq('module_id', moduleId)
       .single();
       
     if (error || !data) {
@@ -156,155 +165,114 @@ class ContentService {
       return null;
     }
     
-    return data as Lesson;
+    return this.mapDbLessonToComponent(data);
   }
-  
-  /**
-   * Get lessons for a specific module
-   */
-  async getLessons(moduleId: string): Promise<Lesson[]> {
-    const { data, error } = await this.supabase
-      .from('lessons')
-      .select('*')
-      .eq('module_id', moduleId)
-      .order('order_index');
-      
-    if (error || !data) {
-      console.error('Error fetching lessons:', error);
-      return [];
-    }
+
+  async getCategories(): Promise<Category[]> {
+    const supabase = createClient();
     
-    return data as Lesson[];
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('sort_order', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching categories:', error);
+      throw new Error(`Failed to fetch categories: ${error.message}`);
+    }
+
+    return data || [];
   }
-  
-  /**
-   * Mark a lesson as completed for a user
-   */
-  async completeLesson(userId: string, lessonId: string, moduleId: string, timeSpent: number = 0): Promise<boolean> {
-    const { error } = await this.supabase
+
+  async getUserProgress(userId: string) {
+    const supabase = createClient();
+    
+    // Get user's lesson completions
+    const { data: completions, error: completionsError } = await supabase
+      .from('user_lesson_completions')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (completionsError) {
+      console.error('Error fetching user completions:', completionsError);
+      return { completedLessons: new Set(), moduleProgress: {} };
+    }
+
+    // Get user's overall progress
+    const { data: progress, error: progressError } = await supabase
+      .from('user_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (progressError && progressError.code !== 'PGRST116') { // PGRST116 is "not found"
+      console.error('Error fetching user progress:', progressError);
+    }
+
+    // Convert completions to a Set for easy lookup
+    const completedLessons = new Set(completions?.map((c: Database['public']['Tables']['user_lesson_completions']['Row']) => c.lesson_id) || []);
+
+    // Calculate module progress
+    const moduleProgress: Record<string, number> = {};
+    if (completions) {
+      const moduleCompletions = completions.reduce((acc: Record<string, number>, completion: Database['public']['Tables']['user_lesson_completions']['Row']) => {
+        acc[completion.module_id] = (acc[completion.module_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Get total lessons per module to calculate percentages
+      const modules = await this.getModules();
+      for (const module of modules) {
+        const completedInModule = moduleCompletions[module.id] || 0;
+        const totalLessons = module.lessons?.length || 0;
+        moduleProgress[module.id] = totalLessons > 0 ? Math.round((completedInModule / totalLessons) * 100) : 0;
+      }
+    }
+
+    return {
+      completedLessons,
+      moduleProgress,
+      totalTimeSpent: progress?.total_time_spent_minutes || 0,
+      currentStreak: progress?.current_streak_days || 0,
+      lastActivity: progress?.last_activity_date || null
+    };
+  }
+
+  async completeLesson(userId: string, lessonId: string, moduleId: string, timeSpentMinutes: number = 1) {
+    const supabase = createClient();
+    
+    const { error } = await supabase
       .from('user_lesson_completions')
       .upsert({
         user_id: userId,
         lesson_id: lessonId,
         module_id: moduleId,
-        completed: true,
-        time_spent: timeSpent,
-        completed_at: new Date().toISOString()
-      }, { onConflict: 'user_id,lesson_id' });
+        completed_at: new Date().toISOString(),
+        time_spent_minutes: timeSpentMinutes
+      });
       
     if (error) {
-      console.error('Error marking lesson as completed:', error);
-      return false;
+      console.error('Error completing lesson:', error);
+      throw new Error(`Failed to complete lesson: ${error.message}`);
     }
-    
-    // Update user_progress table with aggregated stats
-    await this.updateUserProgress(userId);
-    
-    return true;
-  }
-  
-  /**
-   * Update user progress for the entire curriculum
-   * This calculates and stores aggregate progress stats
-   */
-  private async updateUserProgress(userId: string): Promise<void> {
-    try {
-      // Get all modules
-      const modules = await this.getModules();
-      
-      // Get all completed lessons for the user
-      const { data: completions, error } = await this.supabase
-        .from('user_lesson_completions')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('completed', true);
-        
-      if (error) {
-        console.error('Error fetching lesson completions:', error);
-        return;
-      }
-      
-      // Calculate progress for each module
-      for (const module of modules) {
-        // Get lessons for this module
-        const { data: moduleLessons, error: lessonError } = await this.supabase
-          .from('lessons')
-          .select('id')
-          .eq('module_id', module.id);
-          
-        if (lessonError || !moduleLessons) {
-          console.error('Error fetching module lessons:', lessonError);
-          continue;
-        }
-        
-        // Count completed lessons for this module
-        const completedLessonsCount = completions?.filter(
-          completion => completion.module_id === module.id && completion.completed
-        ).length || 0;
-        
-        // Calculate progress percentage
-        const totalLessons = moduleLessons.length;
-        const progressPercentage = totalLessons > 0 
-          ? Math.round((completedLessonsCount / totalLessons) * 100) 
-          : 0;
-          
-        // Update user_progress table
-        await this.supabase
+
+    // Update user's overall progress
+    const { error: progressError } = await supabase
           .from('user_progress')
           .upsert({
             user_id: userId,
-            module_id: module.id,
-            completed_lessons: completedLessonsCount,
-            total_lessons: totalLessons,
-            progress_percentage: progressPercentage,
-            last_updated: new Date().toISOString()
-          }, { onConflict: 'user_id,module_id' });
-      }
-    } catch (err) {
-      console.error('Error updating user progress:', err);
+        last_activity_date: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+
+    if (progressError) {
+      console.error('Error updating user progress:', progressError);
     }
-  }
-  
-  /**
-   * Get user's progress for all modules
-   */
-  async getUserModuleProgress(userId: string): Promise<ModuleProgress[]> {
-    const { data, error } = await this.supabase
-      .from('user_progress')
-      .select('*')
-      .eq('user_id', userId);
-      
-    if (error || !data) {
-      console.error('Error fetching user progress:', error);
-      return [];
-    }
-    
-    return data.map(item => ({
-      module_id: item.module_id,
-      total_lessons: item.total_lessons,
-      completed_lessons: item.completed_lessons,
-      progress_percentage: item.progress_percentage
-    }));
-  }
-  
-  /**
-   * Get all completed lessons for a user
-   */
-  async getUserCompletedLessons(userId: string): Promise<string[]> {
-    const { data, error } = await this.supabase
-      .from('user_lesson_completions')
-      .select('lesson_id')
-      .eq('user_id', userId)
-      .eq('completed', true);
-      
-    if (error || !data) {
-      console.error('Error fetching completed lessons:', error);
-      return [];
-    }
-    
-    return data.map(item => item.lesson_id);
   }
 }
 
-// Export singleton instance
 export const contentService = new ContentService();
+
+// This file is now a server-only export for the content service.
+// If you need client-side access, import from './content-service.client'.
+export * from './content-service.server';

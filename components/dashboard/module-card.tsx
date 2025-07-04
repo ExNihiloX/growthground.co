@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, MouseEvent } from 'react';
 import { Play, Clock, BookOpen, Lock, CheckCircle, Users, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { getCategoryColorClasses } from '@/lib/utils/category-utils';
-import type { Module } from '@/lib/services/content-service';
+import type { Module } from '@/lib/services/content-service.client';
 
 interface ModuleCardProps {
   module: Module;
@@ -18,20 +18,20 @@ interface ModuleCardProps {
 }
 
 export default function ModuleCard({ module, onStartModule, progress: progressProp, completedLessons }: ModuleCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
   
   // Calculate progress based on completed lessons
-  const totalLessons = module.lessons?.length || 0;
-  const completedInThisModule = module.lessons?.filter(lesson =>
+  const totalLessons: number = module.lessons?.length || 0;
+  const completedInThisModule: number = module.lessons?.filter(lesson =>
     completedLessons?.has(lesson.id)
   ).length || 0;
 
-  const computedProgress = totalLessons > 0 ? Math.round((completedInThisModule / totalLessons) * 100) : 0;
-  const progress = progressProp !== undefined ? progressProp : computedProgress;
-  const isCompleted = progress === 100;
-  const isStarted = progress > 0;
+  const computedProgress: number = totalLessons > 0 ? Math.round((completedInThisModule / totalLessons) * 100) : 0;
+  const progress: number = progressProp !== undefined ? progressProp : computedProgress;
+  const isCompleted: boolean = progress === 100;
+  const isStarted: boolean = progress > 0;
 
-  const getDifficultyColor = (difficulty: string) => {
+  const getDifficultyColor = (difficulty: string): string => {
     switch (difficulty) {
       case 'Beginner': return 'bg-green-100 text-green-800';
       case 'Intermediate': return 'bg-yellow-100 text-yellow-800';
@@ -40,18 +40,18 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
     }
   };
 
-  // Removed the duplicate getCategoryColor function - now using the imported utility
+  // Removed the duplicate getCategory function - now using the imported utility
 
   return (
     <Card 
       className={cn(
         "group cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-xl",
-        module.is_locked && "opacity-60 cursor-not-allowed",
+        module.isLocked && "opacity-60 cursor-not-allowed",
         isCompleted && "ring-2 ring-green-200 bg-gradient-to-br from-green-50 to-emerald-50"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => !module.is_locked && onStartModule(module)}
+              onClick={() => !module.isLocked && onStartModule(module)}
     >
       <div className="relative">
         <img
@@ -77,7 +77,7 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
               Complete
             </Badge>
           )}
-          {module.is_locked && (
+          {module.isLocked && (
             <Badge className="bg-gray-500 text-white w-fit">
               <Lock className="h-3 w-3 mr-1" />
               Locked
@@ -86,7 +86,7 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
         </div>
 
         {/* Play button overlay */}
-        {!module.is_locked && (
+        {!module.isLocked && (
           <div className={cn(
             "absolute inset-0 flex items-center justify-center transition-opacity duration-300",
             isHovered ? "opacity-100" : "opacity-0"
@@ -121,11 +121,11 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>{Math.round(module.estimated_time / 60)}h {module.estimated_time % 60}m</span>
+            <span>{Math.round(module.estimatedTime / 60)}h {module.estimatedTime % 60}m</span>
           </div>
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
-            <span>{module.students_enrolled?.toLocaleString() || 'N/A'}</span>
+            <span>{module.studentsEnrolled?.toLocaleString() || 'N/A'}</span>
           </div>
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -171,13 +171,13 @@ export default function ModuleCard({ module, onStartModule, progress: progressPr
                 ? "bg-blue-600 hover:bg-blue-700"
                 : "bg-gray-900 hover:bg-gray-800"
           )}
-          disabled={module.is_locked}
-          onClick={(e) => {
+          disabled={module.isLocked}
+          onClick={(e: MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
-            if (!module.is_locked) onStartModule(module);
+            if (!module.isLocked) onStartModule(module);
           }}
         >
-          {module.is_locked ? (
+          {module.isLocked ? (
             <>
               <Lock className="h-4 w-4 mr-2" />
               Locked

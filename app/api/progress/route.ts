@@ -3,34 +3,49 @@
  * 
  * GET: Fetch user's progress data for all modules
  * POST: Update lesson completion status
+/**
+ * API Route: /api/progress
+ * 
+ * GET: Fetch user's progress data for all modules
+ * POST: Update lesson completion status
  */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { contentService } from '@/lib/services/content-service';
-import { Database } from '@/lib/database.types';
 import { createClient } from '@/lib/supabase/server';
 
-export async function GET(request: NextRequest) {
+interface ProgressResponse {
+  moduleProgress: Record<string, number>;
+  completedLessons: string[];
+  totalTimeSpent?: number;
+  currentStreak?: number;
+  lastActivity?: string | null;
+}
+
+interface ProgressRequestBody {
+  lessonId: string;
+  moduleId: string;
+  timeSpent?: number;
+}
+
+export async function GET(request: NextRequest): Promise<NextResponse<ProgressResponse | { error: string }>> {
   try {
-    // Authentication required for progress data
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
-    
     if (!session || !session.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
-    
     const userId = session.user.id;
-    
-    // Fetch progress data
-    const moduleProgress = await contentService.getUserModuleProgress(userId);
-    const completedLessons = await contentService.getUserCompletedLessons(userId);
-    
+    const progress = await contentService.getUserProgress(userId);
     return NextResponse.json({
-      moduleProgress,
-      completedLessons
+      moduleProgress: progress.moduleProgress,
+      completedLessons: Array.from(progress.completedLessons) as string[],
+      totalTimeSpent: progress.totalTimeSpent as number | undefined,
+      currentStreak: progress.currentStreak as number | undefined,
+      lastActivity: progress.lastActivity as string | null,
     });
   } catch (error) {
     console.error('Error in progress API route:', error);
@@ -41,55 +56,34 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse<{ success: boolean } & ProgressResponse | { error: string }>> {
   try {
-    // Parse request body
-    const body = await request.json();
+    const body: ProgressRequestBody = await request.json();
     const { lessonId, moduleId, timeSpent } = body;
-    
     if (!lessonId || !moduleId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
-    
-    // Authentication check
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
-    
     if (!session || !session.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
-    
     const userId = session.user.id;
-    
-    // Mark lesson as completed
-    const success = await contentService.completeLesson(
-      userId, 
-      lessonId, 
-      moduleId, 
-      timeSpent || 0
-    );
-    
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Failed to update lesson completion' },
-        { status: 500 }
-      );
-    }
-    
-    // Return updated progress data
-    const moduleProgress = await contentService.getUserModuleProgress(userId);
-    const completedLessons = await contentService.getUserCompletedLessons(userId);
-    
+    await contentService.completeLesson(userId, lessonId, moduleId, timeSpent || 0);
+    const progress = await contentService.getUserProgress(userId);
     return NextResponse.json({
       success: true,
-      moduleProgress,
-      completedLessons
+      moduleProgress: progress.moduleProgress,
+      completedLessons: Array.from(progress.completedLessons) as string[],
+      totalTimeSpent: progress.totalTimeSpent as number | undefined,
+      currentStreak: progress.currentStreak as number | undefined,
+      lastActivity: progress.lastActivity as string | null,
     });
   } catch (error) {
     console.error('Error updating progress:', error);

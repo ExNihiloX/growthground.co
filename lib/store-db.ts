@@ -8,8 +8,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Lesson, UserProgress, User, Achievement, CommunityPost, ScheduleEvent, SearchResult } from './types';
-import { Module } from './services/content-service';
-import { mapDbModule, mapDbLesson } from './mappers';
+import { Module } from './services/content-service.client';
 
 interface LessonCompletion {
   id: string;
@@ -24,7 +23,7 @@ interface AppState {
   // Module and lesson data from database
   modules: Module[];
   currentModule: Module | null;
-  currentLesson: any | null;
+  currentLesson: Lesson | null;
   modulesLoading: boolean;
   modulesError: string | null;
   
@@ -32,7 +31,7 @@ interface AppState {
   fetchModules: (includeLessons?: boolean) => Promise<void>;
   fetchModule: (moduleId: string) => Promise<void>;
   setCurrentModule: (module: Module | null) => void;
-  setCurrentLesson: (lesson: any | null) => void;
+  setCurrentLesson: (lesson: Lesson | null) => void;
 
   // Progress tracking
   userProgress: {
@@ -80,7 +79,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set, get) => ({
+    (set: (partial: Partial<AppState> | ((state: AppState) => Partial<AppState>), replace?: boolean) => void, get: () => AppState) => ({
       // User data
       user: null,
       setUser: (user: User | null) => set({ user }),
@@ -97,49 +96,12 @@ export const useAppStore = create<AppState>()(
         try {
           set({ modulesLoading: true, modulesError: null });
           
-          // Use the client-side Supabase client directly
-          const { createClient } = await import('@/lib/supabase/client');
-          const { prefetchCategories } = await import('@/lib/utils/category-utils');
-          const supabase = createClient();
-          
-          // Prefetch all categories to improve performance
-          await prefetchCategories();
-          
-          // Fetch modules
-          let query = supabase
-            .from('modules')
-            .select('*')
-            .order('sort_order');
-          
-          const { data: modules, error } = await query;
-
-          if (error) throw error;
-
-          // Map modules asynchronously
-          const mappingPromises = (modules || []).map(async (module) => {
-            return await mapDbModule(module);
-          });
-          
-          // Wait for all mappings to complete
-          let mapped = await Promise.all(mappingPromises);
-
-          if (includeLessons && modules) {
-            for (let i = 0; i < modules.length; i++) {
-              const m = modules[i];
-              const { data: lessonData, error: lessonError } = await supabase
-                .from('lessons')
-                .select('*')
-                .eq('module_id', m.id)
-                .order('sort_order');
-
-              if (!lessonError && lessonData) {
-                mapped[i].lessons = lessonData.map(mapDbLesson);
-              }
-            }
-          }
+          // Use the content service to fetch modules
+          const { contentServiceClient } = await import('@/lib/services/content-service.client');
+          const modules = await contentServiceClient.getModules();
 
           set({
-            modules: mapped,
+            modules,
             modulesLoading: false
           });
         } catch (error) {
@@ -155,36 +117,11 @@ export const useAppStore = create<AppState>()(
         try {
           set({ modulesLoading: true, modulesError: null });
           
-          // Use the client-side Supabase client directly
-          const { createClient } = await import('@/lib/supabase/client');
-          const { prefetchCategories } = await import('@/lib/utils/category-utils');
-          const supabase = createClient();
+          // Use the content service to fetch the module
+          const { contentServiceClient } = await import('@/lib/services/content-service.client');
+          const module = await contentServiceClient.getModule(moduleId);
           
-          // Prefetch categories to improve performance
-          await prefetchCategories();
-          
-          // Fetch the specific module
-          const { data: module, error } = await supabase
-            .from('modules')
-            .select('*')
-            .eq('id', moduleId)
-            .single();
-          
-          if (error) throw error;
           if (!module) throw new Error('Module not found');
-          
-          // Fetch the lessons for this module
-          const { data: lessons, error: lessonsError } = await supabase
-            .from('lessons')
-            .select('*')
-            .eq('module_id', moduleId)
-            .order('sort_order');
-
-          if (lessonsError) throw lessonsError;
-
-          // Map module data using the async mapper
-          const mapped = await mapDbModule(module);
-          mapped.lessons = (lessons || []).map(mapDbLesson);
           
           // Update the module in the modules array
           set((state) => {
@@ -192,14 +129,14 @@ export const useAppStore = create<AppState>()(
             const moduleIndex = updatedModules.findIndex(m => m.id === moduleId);
 
             if (moduleIndex >= 0) {
-              updatedModules[moduleIndex] = mapped;
+              updatedModules[moduleIndex] = module;
             } else {
-              updatedModules.push(mapped);
+              updatedModules.push(module);
             }
             
             return {
               modules: updatedModules,
-              currentModule: mapped,
+              currentModule: module,
               modulesLoading: false
             };
           });
@@ -213,7 +150,7 @@ export const useAppStore = create<AppState>()(
       },
       
       setCurrentModule: (module: Module | null) => set({ currentModule: module }),
-      setCurrentLesson: (lesson: any | null) => set({ currentLesson: lesson }),
+      setCurrentLesson: (lesson: Lesson | null) => set({ currentLesson: lesson }),
 
       // Progress tracking
       userProgress: {
@@ -383,7 +320,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'growthground-store',
-      partialize: (state) => ({
+      partialize: (state: AppState) => ({
         userProgress: state.userProgress,
         sidebarOpen: state.sidebarOpen,
         currentPage: state.currentPage,

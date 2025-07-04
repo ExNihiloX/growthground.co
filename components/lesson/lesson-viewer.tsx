@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Module, Lesson } from '@/lib/services/content-service';
+import { Module, Lesson } from '@/lib/services/content-service.client';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/lib/store-db';
 import { LessonMarkdown } from './lesson-markdown';

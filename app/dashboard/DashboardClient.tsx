@@ -7,7 +7,7 @@ import StatsOverview from '@/components/dashboard/stats-overview';
 import ModuleCard from '@/components/dashboard/module-card';
 import { Header } from '@/components/layout/header';
 import { useRouter } from 'next/navigation';
-import type { Module } from '@/lib/services/content-service';
+import type { Module } from '@/lib/services/content-service.client';
 
 type CategoryMap = Record<string, string>;
 type ProgressMap = Record<string, number>;
